@@ -1,0 +1,56 @@
+Alex TO_DO console APP , version (1.0.1), was released <10.08.2020>.
+In that app we can store different data, such as global data which would be 
+stored in a .bin file, global means your long-term plans on future, and short 
+tasks on a current day, which you can add, delete, mark as done, mark as rejected etc.
+All data will be stored in special binary files.
+In future it will be ported to windows.
+
+
+
+                            Available flags for command line
+############################################################################################
+
+--help                                              see this documentation via the console
+
+-g -s  or -gs                                       displey all global data.
+
+-l -s  or -ls                                        display all tasks on day.
+
+-g 20.03.2020                                        display one global task with this date if exists
+
+-l 4:55                                             display day task with this time if exists, if not displey warning
+
+-gd 20.03.2020                                      delete all information int global data file by given data after space,
+                                                        of course if data exist with that date.
+                                            
+-g -d 20.03.2020                                     the same as privious but instead of two arguments we receive three,
+                                                            but we delete all information by given date too.
+
+-l -d 6:45                                           delete information in our dayTasks file by given time, if such time 
+                                                        was not found return some warning.
+
+-ld 5:75                                             delete information by given time if such time exists in out dayTasks file
+
+-g -a or -ga                                              use this command ro add information to globalData file, call a menu where
+                                                        you can write all you description of new task.
+
+-g -c or -gc                                             change status of the task, there three available statuses
+                                                        (DONE, IN PROGRESS - it's default, REJECTED), call menu where you must
+                                                            printa date of task? status of which you want to change
+
+-l -a or -la  (status)                                             call a menu where you can add task on day, which will be stored in dayTasks file
+
+-l -c or -gc   (status)                                           change status of the of the task/you receive a special menu where you must
+                                                            write time to know which task status you want to change.
+
+##############################################################################################
+                                        That's it for now.
+
+
+- можно добавить переход между таблицами с дынными, от глобальных данных к дневным задачам
+    и наоборот!
+
+- -gl or -lg                                            отобразить сразу две таблици с данными
+
+
+-e                                                  exit
