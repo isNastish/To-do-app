@@ -135,7 +135,7 @@ struct globalcmdFuncsWithTwoArgs
     /*-g*/"-a", addGlobData,
     /*-g*/"-c", changeGlobStatus,
     "-ga", addGlobData,
-    "-gd", deleteGlobDataBy,
+    "-gd", deleteGlobDataBy,s
     "-gc", changeGlobStatus,
     "-gsh", showGlobDataBy,
 };
@@ -175,7 +175,7 @@ void freeAllocMem(char *);
 void writeGlobStructToFile(struct globalDataNode *, FILE *);
 struct globalDataNode *readGlobStructFromFile(struct globalDataNode *, FILE *);
 
-void writeDayStructToFile(struct tasksOnDay *, FILE *);
+void nDay *, FILE *);
 struct tasksOnDay *readDayStructFromFile(FILE *);
 
 /* functions for freeing memory */
