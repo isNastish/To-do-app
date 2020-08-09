@@ -175,7 +175,7 @@ void freeAllocMem(char *);
 void writeGlobStructToFile(struct globalDataNode *, FILE *);
 struct globalDataNode *readGlobStructFromFile(struct globalDataNode *, FILE *);
 
-void nDay *, FILE *);
+void writeDayStructToFile(struct tasksOnDay *, FILE *);
 struct tasksOnDay *readDayStructFromFile(FILE *);
 
 /* functions for freeing memory */
