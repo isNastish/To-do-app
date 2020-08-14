@@ -35,7 +35,7 @@ int main(int argc, const char *argv[])
         //system("clear");// clean console
         //mainflag = 0;
     }
-    globTreeprint(globRootP, 1);
+    //globTreeprint(globRootP, ...);
     // rewrite all data to fils if something was changed */
 
     //writeGlobStructToFile(globRootP, globFP);
@@ -53,7 +53,7 @@ int main(int argc, const char *argv[])
 // флаг -f будет означать создать новые файлы, и имя файлов через пробел
 FILE *createFile(FILE *fileP, char *fileName)
 {
-    char data_folder_path[60] = "/home/nastish/MyProject/database/";
+    char data_folder_path[60] = "/home/nastish/MyProjects/To-do-app/database/";
     void strconcat(char *, const char *);
 
     strconcat(data_folder_path, fileName);
@@ -200,27 +200,27 @@ int compareDates(struct universalDate *ptrOld, struct universalDate *ptrNew)
 {
     if(ptrOld->year > ptrNew->year || ptrOld->year < ptrNew->year)
     {
-        printf("old year %d\n", ptrOld->year);
-        printf("new year%d\n", ptrNew->year);
-        printf("day 1 diff %d\n", ptrOld->year - ptrNew->year);
+        // printf("old year %d\n", ptrOld->year);
+        // printf("new year%d\n", ptrNew->year);
+        // printf("day 1 diff %d\n", ptrOld->year - ptrNew->year);
         return ptrOld->year - ptrNew->year;
     }
     else
     {
         if(ptrOld->month > ptrNew->month || ptrOld->month < ptrNew->month)
         {
-            printf("old month %d\n", ptrOld->month);
-            printf("new month%d\n", ptrNew->month);
-            printf("day 2 diff %d\n", ptrOld->month - ptrNew->month);
+            // printf("old month %d\n", ptrOld->month);
+            // printf("new month%d\n", ptrNew->month);
+            // printf("day 2 diff %d\n", ptrOld->month - ptrNew->month);
             return ptrOld->month - ptrNew->month;
         }
         else
         {
             if(ptrOld->day > ptrNew->day || ptrOld->day < ptrNew->day)
             {
-                printf("old day %d\n", ptrOld->day);
-                printf("new day %d\n", ptrNew->day);
-                printf("day 3 diff %d\n", ptrOld->day - ptrNew->day);
+                // printf("old day %d\n", ptrOld->day);
+                // printf("new day %d\n", ptrNew->day);
+                // printf("day 3 diff %d\n", ptrOld->day - ptrNew->day);
                 return ptrOld->day - ptrNew->day;
             }
             else
@@ -234,8 +234,6 @@ int compareDates(struct universalDate *ptrOld, struct universalDate *ptrNew)
 /* ____________________calculate amount of days beetwen date of the start and date of the planning finish______________________________ */
 int amountOfDaysPerTask(struct universalDate *startptr, struct universalDate *endptr)
 {
-    //printf("start : %d %d %d\n", startptr->day, startptr->month, startptr->year);
-    //printf("finish : %d %d %d\n", endptr->day, endptr->month, endptr->year);
     int leapYearStart, leapYearFinish;
     int start = dayOfyear(startptr->year, startptr->month, startptr->day);
     int finish = dayOfyear(endptr->year, endptr->month, endptr->day);
@@ -249,10 +247,8 @@ int amountOfDaysPerTask(struct universalDate *startptr, struct universalDate *en
 
         if(endptr->year == startptr->year + 1) // if finish year is the next year after start year
         {
-            if(leapYearStart) // if begin year is leap
-                return 366 - start + finish;
-            else 
-                return 365 - start + finish;
+            if(leapYearStart) {return 366 - start + finish;} /* if leap year */
+            else {return 365 - start + finish;}
         }
         else // if not the same year
         {
@@ -264,10 +260,8 @@ int amountOfDaysPerTask(struct universalDate *startptr, struct universalDate *en
                 countDays += (localYearLeap) ? 366 : 365; // calculate amount of days beetwen begin year and finish year
 
             }
-            if(leapYearStart)
-                return 366 - start + countDays + finish;
-            else
-                return 365 - start + countDays + finish;
+            if(leapYearStart) {return 366 - start + countDays + finish;}
+            else {return 365 - start + countDays + finish;}
         }
     }
 }
@@ -276,10 +270,8 @@ int amountOfDaysPerTask(struct universalDate *startptr, struct universalDate *en
 int dayOfyear(int year, int month, int day)
 {
     int i, leap;
-
     leap = year % 4 == 0 && year % 100 != 0 || year % 400 == 0; // compute leap year or not, 1 - leap, 0 - not leap
-    for(i = 1; i < month; i++)
-        day += daysInmonth[leap][i];
+    for(i = 1; i < month; i++) {day += daysInmonth[leap][i];}
     return day;
 }
 
@@ -366,16 +358,18 @@ void writeGlobStructToFile(struct globalDataNode *structPtr, FILE * filePtr) /* 
         writeGlobStructToFile(structPtr->leftnode, filePtr);
         writeGlobStructToFile(structPtr->rightnode, filePtr);
     }
-} // done
+}
 
-void globTreeprint(struct globalDataNode *globrootP,  unsigned int plans_counter)
+void globTreeprint(struct globalDataNode *globrootP, unsigned int taskNumber)
 {
     if(globrootP != NULL)
     {
-        globTreeprint(globrootP->leftnode, plans_counter);
-
+        //printf("task :%d\n", taskNumber);
+        globTreeprint(globrootP->leftnode, taskNumber);
+    
+        ++taskNumber;
         printf(C_MAGENTA "  |");
-        printf(C_CYAN "%5d" RESET_TO_DEF, plans_counter);
+        printf(C_CYAN "%5d" RESET_TO_DEF, taskNumber);
         printf(C_MAGENTA "|" RESET_TO_DEF);
         (globrootP->beginDate->day > 9) ? printf("  %d.", globrootP->beginDate->day) : printf("  0%d.", globrootP->beginDate->day);
         (globrootP->beginDate->month > 9) ? printf("%d.", globrootP->beginDate->month) : printf("0%d.", globrootP->beginDate->month);
@@ -398,12 +392,11 @@ void globTreeprint(struct globalDataNode *globrootP,  unsigned int plans_counter
         for(int i = 0; i < 77; i++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
         printf(C_MAGENTA "  |");
         for(int i = 0; i < 170; i++) {printf("-");}; printf("|\n" RESET_TO_DEF);
-
-
-        /* printing geader of task and description */
-
-        ++plans_counter;
-        globTreeprint(globrootP->rightnode, plans_counter);
+        /*
+         printing header of task and description 
+        */
+        globTreeprint(globrootP->rightnode, taskNumber);
+        ++taskNumber;
     }
 }
 
@@ -411,6 +404,7 @@ void globTreeprint(struct globalDataNode *globrootP,  unsigned int plans_counter
 /* functions that works with flags from command line, print already allocated data! */
 void displayAllGlobData(struct globalDataNode *globP)
 {
+    unsigned int taskNumber = 0; /* tasks counter */
     int flag = 0;
     printf(C_CYAN "\t\t\t\t\t\t\t\t\t\tGLOBAL TASKS\n"); printf(C_MAGENTA "   __");
 	for(int i = 0; i < 56; i++) {printf(C_MAGENTA " __");}; printf("\n");
@@ -422,28 +416,28 @@ void displayAllGlobData(struct globalDataNode *globP)
             if(i == 0) {printf(C_BLUE "  №  " RESET_TO_DEF); flag = 5;}
             for(int j = flag; j < 170; j++)
             {
-                if(i == 1) {printf(C_MAGENTA "-"); continue;}
-                else if(j == 5) {printf(C_MAGENTA "|");if(i == 0) {printf(C_BLUE "  start date  ");j = 19;}}
+                if(i == 1)       {printf(C_MAGENTA "-"); continue;}
+                else if(j == 5)  {printf(C_MAGENTA "|");if(i == 0) {printf(C_BLUE "  start date  ");j = 19;}}
                 else if(j == 20) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "  finish date "); j = 34;}}
                 else if(j == 35) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE " day "); j = 40;}}
                 else if(j == 41) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "    status   ");j = 54;}}
                 else if(j == 56) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t task name\t       "); j = 91;}}
                 else if(j == 92) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t\t\tdescription\t\t\t\t    "); j = 168;}}
-                else  {printf(C_MAGENTA " ");} // j = 169
+                else             {printf(C_MAGENTA " ");} // j = 169
             }
             printf(C_MAGENTA "|\n"); flag = 0;
         }
-        else if(i == 2) {globTreeprint(globP, 1); printf("\n");}
+        else if(i == 2) {globTreeprint(globP, taskNumber); printf("\n");}
 	}printf(C_MAGENTA "  |__");
     for(int i = 0; i < 56; i++) 
     {
-        if(i == 1) {printf("|__");}
-        else if(i == 6) {printf("|__");}
+        if(i == 1)       {printf("|__");}
+        else if(i == 6)  {printf("|__");}
         else if(i == 11) {printf("|__");}
         else if(i == 13) {printf("|__");}
         else if(i == 18) {printf("|__");}
         else if(i == 30) {printf("|__");}
-        else {printf(C_MAGENTA " __");}
+        else             {printf(C_MAGENTA " __");}
     }
     printf("|\n\n" RESET_TO_DEF);
 }
@@ -462,18 +456,14 @@ struct globalDataNode *addGlobData(struct globalDataNode *globPtr, char *header)
         printf(C_GREEN "start date: " RESET_TO_DEF);
         sdateLen = mygetLine(startDate, 11);
         *(startDate + sdateLen - 1) = '\0'; // replace '\n' with '\0'
-        //printf("%s\n", startDate);
 
         printf(C_GREEN "finish date: " RESET_TO_DEF);
         fdateLen = mygetLine(finishDate, 11);
         *(finishDate + fdateLen - 1) = '\0';
-        //printf("%s\n", finishDate);
 
         printf(C_GREEN "description: " RESET_TO_DEF);
         descrpLen = mygetLine(description, 10000);
         *(description + descrpLen - 1) = '\0';
-        //printf("%s\n", description);
-
         if(addHeaderflag > 0)
         {
             printf(C_GREEN "header: " RESET_TO_DEF);
@@ -484,19 +474,7 @@ struct globalDataNode *addGlobData(struct globalDataNode *globPtr, char *header)
         dateParser(&sdateP, startDate, sdateLen);
         dateParser(&fdateP, finishDate, fdateLen);
 
-        //printf("sday : %d\nsmonth : %d\nsyear : %d\n", sdateP.day, sdateP.month, sdateP.year);
-        //printf("fday : %d\nfmonth : %d\nfyear : %d\n", fdateP.day, fdateP.month, fdateP.year);
-
         globPtr = createGlobalTree(globPtr, &sdateP, &fdateP, description, (addHeaderflag  == 0) ? header : header_, DEF_STATUS);
-        //printf("%s\n", globPtr->amountDays);
-        //printf("%s\n", globPtr->beginDate->day);
-        //printf("%s\n", globPtr->finishDate);
-        //printf("%s\n", globPtr->statusOfTask);
-        //printf("%s\n", globPtr->headerOfNode);
-        //printf("%s\n", globPtr->description);
-
-
-        /*..................*/
         printf(C_RED_SLIM "Add more data?" RESET_TO_DEF); // there after input we have two symbols 'y' and '\n'
         scanf("%c", &addmoreData);
         scanf("%c", &garbich); // we need it, because or next getchar() will read '\n' symbol and jump return
@@ -532,7 +510,7 @@ void dateParser(struct universalDate *dateP, char strdate[], int dateLen) // str
     }
 }
 
-unsigned short myatoi(char date[])
+unsigned short myatoi(char date[]) /* convert day, month, tear into number */
 {
     int i;
     unsigned short n;
@@ -549,16 +527,12 @@ struct globalDataNode *changeGlobStatus(struct globalDataNode *globPtr, char *da
     struct universalDate convertDate;
     struct globalDataNode *reftoNode;
     dateParser(&convertDate, dateToChange, 11);
-    //printf("before : %p\n", globPtr);
     reftoNode = findstatusinTree(globPtr, &convertDate);
-    //printf("after : %p\n", reftoNode);
-    //printf("glob : %p\n", globPtr);
     if(NULL == reftoNode)
     {
         printf(C_RED "date (%d %d %d) wasn't found.\n" RESET_TO_DEF, convertDate.day, convertDate.month, convertDate.year);
     }
-    //globTreeprint(globPtr, 0); // just for test
-    //showGlobDataBy(globPtr, dateToChange);
+    showGlobDataBy(globPtr, dateToChange);
     return globPtr;
 }
 
@@ -602,83 +576,55 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
 {
     int resultdate;
     if(NULL == globrootP) {return NULL;}
-    else if((resultdate = compareDates(globrootP->beginDate, dateP)) > 0)
-    {
-        finddateinTree(globrootP->leftnode, dateP);
-    }
-    else if(resultdate < 0)
-    {
-        finddateinTree(globrootP->rightnode, dateP);
-    }
-    else
+    else if((resultdate = compareDates(globrootP->beginDate, dateP)) > 0) {finddateinTree(globrootP->leftnode, dateP);}
+    else if(resultdate < 0) {finddateinTree(globrootP->rightnode, dateP);}
+    else // if found - print info
     {
         int flag = 0;
-        printf(C_CYAN "\t\t\t\t\t\t\t\t\t\tGLOBAL TASKS\n");
-        printf(C_MAGENTA "   __");
-        for(int i = 0; i < 56; i++) {printf(C_MAGENTA " __");}
-        printf("\n");
-
-        for(int i = 0; i < 20; i++)
+        printf(C_CYAN "\t\t\t\t\t\t\t\t\t\tGLOBAL TASKS\n"); printf(C_MAGENTA "   __");
+        for(int i = 0; i < 56; i++) {printf(C_MAGENTA " __");} printf("\n");
+        for(int i = 0; i <= 2; i++)
         {
-            printf("  ");
-            printf(C_MAGENTA "|");
-            int j;
-            if(i == 0) {printf(C_BLUE "  №  " RESET_TO_DEF); flag = 5;}
-            for(j = flag; j < 170; j++)
+            if( i < 2)
             {
-                if(i == 1) {printf(C_MAGENTA "-"); continue;}
-                if(j == 5) 
+                printf(C_MAGENTA "|");
+                if(i == 0) {printf(C_BLUE "  №  " RESET_TO_DEF); flag = 5;}
+                for(int j = flag; j < 170; j++)
                 {
-                    printf(C_MAGENTA "|"); 
-                    if(i == 0) {printf(C_BLUE "  start date  ");j = 19;}
-                    continue;
+                    if(i == 1)       {printf(C_MAGENTA "-"); continue;}
+                    else if(j == 5)  {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "  start date  ");j = 19;}}
+                    else if(j == 20) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "  finish date "); j = 34;}}
+                    else if(j == 35) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE " day "); j = 40;}}
+                    else if(j == 41) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "    status   ");j = 54;}}
+                    else if(j == 56) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t task name\t       "); j = 91;}}
+                    else if(j == 92) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t\t\tdescription\t\t\t\t    "); j = 168;}}
+                    else             {printf(C_MAGENTA " ");}
                 }
-                if(j == 20) 
-                {
-                    printf(C_MAGENTA "|"); 
-                    if(i == 0) {printf(C_BLUE "  finish date "); j = 34;}
-                    continue;
-                }
-
-                if(j == 35) 
-                {
-                    printf(C_MAGENTA "|"); 
-                    if(i == 0) {printf(C_BLUE " day "); j = 40;}
-                    continue;
-                }
-                if(j == 41) 
-                {
-                    printf(C_MAGENTA "|"); 
-                    if(i == 0) {printf(C_BLUE "    status   ");j = 54;}
-                    continue;
-                }
-                if(j == 56) 
-                {
-                    printf(C_MAGENTA "|"); 
-                    if(i == 0) {printf(C_BLUE "             task name             "); j = 91;}
-                    continue;}
-                if(j == 92)
-                {
-                    printf(C_MAGENTA "|"); 
-                    if(i == 0) {printf(C_BLUE "                                description                                 "); j = 168;}
-                    continue;}
-                printf(C_MAGENTA " ");
+                printf(C_MAGENTA "|\n");
+                flag = 0;
             }
-            printf(C_MAGENTA "|\n");
-            flag = 0;
+            else if(i == 2)
+            {
+                /*find node and print */
+            }
         }
         printf(C_MAGENTA "  |__");
         for(int i = 0; i < 56; i++) 
         {
-            if(i == 1 || i == 6 || i == 11 || i == 13 || i == 18 || i == 30) {printf("|__"); continue;} /* ....... */
-            printf(C_MAGENTA " __");
+            if(i == 1)       {printf("|__");}
+            else if(i == 6)  {printf("|__");}
+            else if(i == 11) {printf("|__");}
+            else if(i == 13) {printf("|__");}
+            else if(i == 18) {printf("|__");}
+            else if(i == 30) {printf("|__");}
+            else             {printf(C_MAGENTA " __");}
         }
         printf("|\n\n" RESET_TO_DEF);
-
         return globrootP;
     }
 }
 
+/* i don't know now how to do it */
 struct globalDataNode *deleteGlobDataBy(struct globalDataNode *globPtr, char *dateToDelete)
 {
     return;

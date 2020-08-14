@@ -50,7 +50,6 @@ https://ru.wikipedia.org/wiki/Управляющие_последователь�
 char buf[BUFSIZE];
 int bufp = 0;
 
-
 /* creating new files */
 FILE *createFile(FILE *, char *);
 
