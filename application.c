@@ -1,5 +1,4 @@
 #include "application.h"
-#include "colors.h"
 
 int main(int argc, const char *argv[])
 {
@@ -96,17 +95,17 @@ struct globalDataNode *tallocGlobalTask(void)
 }
 
 /* allocation for structure of type dayTasksNode */
-// struct dayTasksNode *tallocDayTask(void)
-// {
-//     struct dayTasksNode *dayptr;
-//     dayptr = (struct dayTasksNode *) malloc(sizeof(struct dayTasksNode));
+struct tasksOnDay *tallocDayTask(void)
+{
+    struct tasksOnDay *dayptr;
+    dayptr = (struct tasksOnDay *) malloc(sizeof(struct tasksOnDay));
 
-//     if(NULL == dayptr)
-//     {
-//         // do somthing to avoid crash
-//     }
-//     return dayptr;
-// }
+    if(NULL == dayptr)
+    {
+        // do somthing to avoid crash
+    }
+    return dayptr;
+}
 
 
 /* allocate date */
@@ -200,20 +199,34 @@ int insideProgArgParser(char *inArgsPtr[])
 int compareDates(struct universalDate *ptrOld, struct universalDate *ptrNew)
 {
     if(ptrOld->year > ptrNew->year || ptrOld->year < ptrNew->year)
+    {
+        printf("old year %d\n", ptrOld->year);
+        printf("new year%d\n", ptrNew->year);
+        printf("day 1 diff %d\n", ptrOld->year - ptrNew->year);
         return ptrOld->year - ptrNew->year;
+    }
     else
     {
         if(ptrOld->month > ptrNew->month || ptrOld->month < ptrNew->month)
+        {
+            printf("old month %d\n", ptrOld->month);
+            printf("new month%d\n", ptrNew->month);
+            printf("day 2 diff %d\n", ptrOld->month - ptrNew->month);
             return ptrOld->month - ptrNew->month;
+        }
         else
         {
             if(ptrOld->day > ptrNew->day || ptrOld->day < ptrNew->day)
+            {
+                printf("old day %d\n", ptrOld->day);
+                printf("new day %d\n", ptrNew->day);
+                printf("day 3 diff %d\n", ptrOld->day - ptrNew->day);
                 return ptrOld->day - ptrNew->day;
+            }
             else
                 return 0; /* it means that task was given at the same day */
             
         }
-        
     }
 }
 
@@ -230,11 +243,11 @@ int amountOfDaysPerTask(struct universalDate *startptr, struct universalDate *en
     if(startptr->year == endptr->year)
         return finish - start;
     else
-    {
-        leapYearStart = startptr->year % 4 == 0 && startptr->year % 100 != 0 || startptr->year % 400 == 0; // check if begin year leap or not 
+    {/* if 1 - leap, 0 - not leap */
+        leapYearStart = startptr->year % 4 == 0 && startptr->year % 100 != 0 || startptr->year % 400 == 0; // check if begin year is leap or not 
         leapYearFinish = endptr->year % 4 == 0 && endptr->year % 100 != 0 || endptr->year % 400 == 0; // if finish year leap pr not
 
-        if(endptr->year == startptr->year + 1) // if the same year
+        if(endptr->year == startptr->year + 1) // if finish year is the next year after start year
         {
             if(leapYearStart) // if begin year is leap
                 return 366 - start + finish;
@@ -245,9 +258,9 @@ int amountOfDaysPerTask(struct universalDate *startptr, struct universalDate *en
         {
             int i, localYearLeap, countDays;
             countDays = 0;
-            for(i = 0; i > startptr->year; i++)
+            for(i = endptr->year - 1; i > startptr->year; i--)
             {
-                localYearLeap = (endptr->year - i) % 4 == 0 && (endptr->year - i) % 100 != 0 || (endptr->year - i) % 400 == 0;
+                localYearLeap = (i) % 4 == 0 && (i) % 100 != 0 || (i) % 400 == 0;
                 countDays += (localYearLeap) ? 366 : 365; // calculate amount of days beetwen begin year and finish year
 
             }
@@ -256,9 +269,7 @@ int amountOfDaysPerTask(struct universalDate *startptr, struct universalDate *en
             else
                 return 365 - start + countDays + finish;
         }
-    
     }
-
 }
 
 
@@ -359,14 +370,6 @@ void writeGlobStructToFile(struct globalDataNode *structPtr, FILE * filePtr) /* 
 
 void globTreeprint(struct globalDataNode *globrootP,  unsigned int plans_counter)
 {
-    /*
-    globrootP->beginDate;
-    globrootP->finishDate;
-    globrootP->amountDays;
-    globrootP->statusOfTask;
-    globrootP->headerOfNode;
-    globrootP->description;
-    */
     if(globrootP != NULL)
     {
         globTreeprint(globrootP->leftnode, plans_counter);
@@ -379,17 +382,25 @@ void globTreeprint(struct globalDataNode *globrootP,  unsigned int plans_counter
         printf("%d  ", globrootP->beginDate->year);
         printf(C_MAGENTA "|" RESET_TO_DEF);
 
-        (globrootP->beginDate->day > 9) ? printf("  %d.", globrootP->beginDate->day) : printf("  0%d.", globrootP->beginDate->day);
-        (globrootP->beginDate->month > 9) ? printf("%d.", globrootP->beginDate->month) : printf("0%d.", globrootP->beginDate->month);
-        printf("%d  ", globrootP->beginDate->year);
+        (globrootP->finishDate->day > 9) ? printf("  %d.", globrootP->finishDate->day) : printf("  0%d.", globrootP->finishDate->day);
+        (globrootP->finishDate->month > 9) ? printf("%d.", globrootP->finishDate->month) : printf("0%d.", globrootP->finishDate->month);
+        printf("%d  ", globrootP->finishDate->year);
         printf(C_MAGENTA "|" RESET_TO_DEF);
 
-        printf(C_YELLOW "%5d" RESET_TO_DEF, globrootP->amountDays);
+        printf("%5d", globrootP->amountDays);
         printf(C_MAGENTA "|" RESET_TO_DEF);
 
-        (mystrcmp(globrootP->statusOfTask, "denied") == 0) ? printf(C_RED_SLIM "%14s" RESET_TO_DEF, globrootP->statusOfTask) :\
-        printf(C_GREEN "%14s" RESET_TO_DEF, globrootP->statusOfTask);
+        if((mystrcmp(globrootP->statusOfTask, "in progress")) == 0) {printf(C_YELLOW " %s  ", globrootP->statusOfTask, RESET_TO_DEF);}
+        else if((mystrcmp(globrootP->statusOfTask, "done")) == 0) {printf(C_GREEN "     %s     ", globrootP->statusOfTask, RESET_TO_DEF);}
+        else if((mystrcmp(globrootP->statusOfTask, "denied")) == 0) {printf(C_RED_SLIM "    %s    ", globrootP->statusOfTask, RESET_TO_DEF);}
         printf(C_MAGENTA "|" RESET_TO_DEF);
+        for(int i = 0; i < 35; i++) {printf(" ");}; printf(C_MAGENTA "|" RESET_TO_DEF);
+        for(int i = 0; i < 77; i++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
+        printf(C_MAGENTA "  |");
+        for(int i = 0; i < 170; i++) {printf("-");}; printf("|\n" RESET_TO_DEF);
+
+
+        /* printing geader of task and description */
 
         ++plans_counter;
         globTreeprint(globrootP->rightnode, plans_counter);
@@ -418,7 +429,7 @@ void displayAllGlobData(struct globalDataNode *globP)
                 else if(j == 41) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "    status   ");j = 54;}}
                 else if(j == 56) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t task name\t       "); j = 91;}}
                 else if(j == 92) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t\t\tdescription\t\t\t\t    "); j = 168;}}
-                else  {printf(C_MAGENTA " ");}
+                else  {printf(C_MAGENTA " ");} // j = 169
             }
             printf(C_MAGENTA "|\n"); flag = 0;
         }
@@ -572,7 +583,6 @@ struct globalDataNode *findstatusinTree(struct globalDataNode *globrootP, struct
         strcpy(globrootP->statusOfTask, status);
         return globrootP; 
     }
-    
 }
 
 struct globalDataNode *showGlobDataBy(struct globalDataNode *globPtr, char *dateToShow)
@@ -667,7 +677,6 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
 
         return globrootP;
     }
-    
 }
 
 struct globalDataNode *deleteGlobDataBy(struct globalDataNode *globPtr, char *dateToDelete)
@@ -710,7 +719,7 @@ struct tasksOnDay *deleteDayDataBy(struct tasksOnDay *daydataPtr, char *dateTodD
 
 struct globalDataNode *globmainArgParser(struct globalDataNode *globRootP, FILE *globFP, int argc, const char *argv[], int *mainflag)
 {
-    globRootP = readGlobStructFromFile(globRootP, globFP);/* builr tree and allocat memory for all data in file, and return pointer on root */
+    globRootP = readGlobStructFromFile(globRootP, globFP);/* built tree and allocate memory for all data in file, and return pointer on root */
     if(argc == 2 && (mystrcmp(argv[1], "-g") == 0)) /* -g */
     {
         displayAllGlobData(globRootP);
