@@ -27,7 +27,7 @@ https://ru.wikipedia.org/wiki/Управляющие_последователь�
 #define C_BLUE                  "\x1b[34m"
 #define C_MAGENTA               "\x1b[35;1m"
 #define C_CYAN                  "\x1b[36;1m"
-#define C_WHITE                 "\x1b[37m"
+#define C_WHITE                 "\x1b[37;1m"
 
 // reset all color to default
 #define RESET_TO_DEF                "\x1b[0m"
@@ -205,6 +205,8 @@ void freeDescription(char *);
 struct globalDataNode *globmainArgParser(struct globalDataNode *, FILE *, int, const char *[], int *);
 struct tasksOnDay *daymainArgParser(struct tasksOnDay *, FILE *, int,  const char *[], int *);
 
+void showDocumentation(); /* read file where all our documentation stored and display it on the screen */
+
 #endif
 
                                             /* _______________________ЗАДАЧИ______________________________________*/
@@ -254,4 +256,6 @@ struct tasksOnDay *daymainArgParser(struct tasksOnDay *, FILE *, int,  const cha
 7    - разделить парсинг аргуметов командной строки на две главных функции, одна для структуры 
         globalDataNode а вторая для dayTasksNode
 
+
+8    - соеденить функции которые отвечают за вывод в одну или две, там есть где сократить количество кода
 */
