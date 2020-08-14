@@ -581,13 +581,13 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
     else // if found - print info
     {
         int flag = 0;
-        printf(C_CYAN "\t\t\t\t\t\t\t\t\t\tGLOBAL TASKS\n"); printf(C_MAGENTA "   __");
+        printf(C_RED_SLIM "\t\t\t\t\t\t\t\t\t\tCHANGED TASK\n"); printf(C_MAGENTA "   __");
         for(int i = 0; i < 56; i++) {printf(C_MAGENTA " __");} printf("\n");
         for(int i = 0; i <= 2; i++)
         {
             if( i < 2)
             {
-                printf(C_MAGENTA "|");
+                printf(C_MAGENTA "  |");
                 if(i == 0) {printf(C_BLUE "  №  " RESET_TO_DEF); flag = 5;}
                 for(int j = flag; j < 170; j++)
                 {
@@ -606,6 +606,35 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
             else if(i == 2)
             {
                 /*find node and print */
+                printf(C_MAGENTA "  |");
+                printf(C_CYAN "%5d" RESET_TO_DEF, 1);
+                printf(C_MAGENTA "|" RESET_TO_DEF);
+
+                (globrootP->beginDate->day > 9) ? printf("  %d.", globrootP->beginDate->day) :
+                printf("  0%d.",globrootP->beginDate->day);
+                (globrootP->beginDate->month > 9) ? printf("%d.", globrootP->beginDate->month) :
+                printf("0%d.", globrootP->beginDate->month);
+                printf("%d  ", globrootP->beginDate->year);
+                printf(C_MAGENTA "|" RESET_TO_DEF);
+
+                (globrootP->finishDate->day > 9) ? printf("  %d.", globrootP->finishDate->day) :
+                printf("  0%d.", globrootP->finishDate->day);
+                (globrootP->finishDate->month > 9) ? printf("%d.", globrootP->finishDate->month) :
+                printf("0%d.", globrootP->finishDate->month);
+                printf("%d  ", globrootP->finishDate->year);
+                printf(C_MAGENTA "|" RESET_TO_DEF);
+
+                printf("%5d", globrootP->amountDays);
+                printf(C_MAGENTA "|" RESET_TO_DEF);
+
+                if((mystrcmp(globrootP->statusOfTask, "in progress")) == 0) {printf(C_YELLOW " %s  ", globrootP->statusOfTask, RESET_TO_DEF);}
+                else if((mystrcmp(globrootP->statusOfTask, "done")) == 0) {printf(C_GREEN "     %s     ", globrootP->statusOfTask, RESET_TO_DEF);}
+                else if((mystrcmp(globrootP->statusOfTask, "denied")) == 0) {printf(C_RED_SLIM "    %s    ", globrootP->statusOfTask, RESET_TO_DEF);}
+                printf(C_MAGENTA "|" RESET_TO_DEF);
+                for(int i = 0; i < 35; i++) {printf(" ");}; printf(C_MAGENTA "|" RESET_TO_DEF);
+                for(int i = 0; i < 77; i++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
+
+                /* displaying haeder and description, the hardest part */
             }
         }
         printf(C_MAGENTA "  |__");
