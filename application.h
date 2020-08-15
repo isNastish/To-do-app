@@ -32,6 +32,7 @@ https://ru.wikipedia.org/wiki/Управляющие_последователь�
 // reset all color to default
 #define RESET_TO_DEF                "\x1b[0m"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -205,7 +206,8 @@ void freeDescription(char *);
 struct globalDataNode *globmainArgParser(struct globalDataNode *, FILE *, int, const char *[], int *);
 struct tasksOnDay *daymainArgParser(struct tasksOnDay *, FILE *, int,  const char *[], int *);
 
-void showDocumentation(); /* read file where all our documentation stored and display it on the screen */
+void showDocumentation(void); /* read file where all our documentation stored and display it on the screen */
+void printingHeadandDescrp();
 
 #endif
 
@@ -257,5 +259,12 @@ void showDocumentation(); /* read file where all our documentation stored and di
         globalDataNode а вторая для dayTasksNode
 
 
-8    - соеденить функции которые отвечают за вывод в одну или две, там есть где сократить количество кода
+8    - вынести в отделбную функцию отрисовку данных header and description, потому как они практическик 
+        идентичны в двух местах, нужно слепить с них одну 
+
+9    - решение проблемы с отображением, когда мы встречаем первый пробел или запятую или точку.. после 20 написанных символов
+        мы делаем еще один цикл что-бы проверить будет ли еще хоть один пробел или запята я или точка.. до конца размера колонки
+        если будет, то мы вписываем это слово до пробела, а все остальные переносим на новую строку
+        если нет, переносим все начиная от первого пробела после 20 символов.
+
 */
