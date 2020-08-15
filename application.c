@@ -48,9 +48,6 @@ int main(int argc, const char *argv[])
     return 0;
 }
 
-
-/* ___________________________creating new files__________________________*/
-// флаг -f будет означать создать новые файлы, и имя файлов через пробел
 FILE *createFile(FILE *fileP, char *fileName)
 {
     char data_folder_path[60] = "/home/nastish/MyProjects/To-do-app/database/";
@@ -76,10 +73,7 @@ void strconcat(char *destination, const char *source)
     while((*destination++ = *source++) != '\0')
         ;
 }
-/*________________________________________________________________________*/
 
-
-/*___________________________allocation functions ________________________*/
 /* allocation for structure of type struct globalDataNode */
 struct globalDataNode *tallocGlobalTask(void)
 {
@@ -147,7 +141,7 @@ char *allocMemory(int amount)
     else {printf("allocMemory error: not enough space in buffer!\n");} // work with errors
 }
 
-void freeAllocMem(char *freeP)
+void freeAllocMem(char *freeP) 
 {
     if(freeP >= allocatedBuffer && freeP < allocatedBuffer + ALLOCSIZE) {allocBufP = freeP;}
 }
@@ -171,7 +165,7 @@ int mygetLine(char args[], int lim) // type missmatvh
 int insideProgArgParser(char *inArgsPtr[])
 {
     int i, lenLine, ptrCount = 1, argLen = 0;
-    char *p, argsline[BUFSIZE], arg[BUFSIZE / 2];
+    char *p, argsline[BUFSIZE], arg[BUFSIZE / 2]; // we need size not limited, we need pointers, very important error FIX
     lenLine = mygetLine(argsline, BUFSIZE);
     
     for(i = 0; i < lenLine; i++)
@@ -191,47 +185,25 @@ int insideProgArgParser(char *inArgsPtr[])
         }
     }
     return ptrCount;
-} // probably done
-
+} 
 
 /* compare dates 12.04.2012 ................. , this function instead strcmp() */
 // обработку возвращаемых данных возлагаем на вызывающую функцию
 int compareDates(struct universalDate *ptrOld, struct universalDate *ptrNew)
 {
-    if(ptrOld->year > ptrNew->year || ptrOld->year < ptrNew->year)
-    {
-        // printf("old year %d\n", ptrOld->year);
-        // printf("new year%d\n", ptrNew->year);
-        // printf("day 1 diff %d\n", ptrOld->year - ptrNew->year);
-        return ptrOld->year - ptrNew->year;
-    }
+    if(ptrOld->year > ptrNew->year || ptrOld->year < ptrNew->year) {return ptrOld->year - ptrNew->year;}
     else
     {
-        if(ptrOld->month > ptrNew->month || ptrOld->month < ptrNew->month)
-        {
-            // printf("old month %d\n", ptrOld->month);
-            // printf("new month%d\n", ptrNew->month);
-            // printf("day 2 diff %d\n", ptrOld->month - ptrNew->month);
-            return ptrOld->month - ptrNew->month;
-        }
+        if(ptrOld->month > ptrNew->month || ptrOld->month < ptrNew->month) {return ptrOld->month - ptrNew->month;}
         else
         {
-            if(ptrOld->day > ptrNew->day || ptrOld->day < ptrNew->day)
-            {
-                // printf("old day %d\n", ptrOld->day);
-                // printf("new day %d\n", ptrNew->day);
-                // printf("day 3 diff %d\n", ptrOld->day - ptrNew->day);
-                return ptrOld->day - ptrNew->day;
-            }
-            else
-                return 0; /* it means that task was given at the same day */
-            
+            if(ptrOld->day > ptrNew->day || ptrOld->day < ptrNew->day) {return ptrOld->day - ptrNew->day;}
+            else return 0; /* it means that task was given at the same day */
         }
     }
 }
 
-
-/* ____________________calculate amount of days beetwen date of the start and date of the planning finish______________________________ */
+/* calculate amount of days beetwen date of the start and date of the planning finish */
 int amountOfDaysPerTask(struct universalDate *startptr, struct universalDate *endptr)
 {
     int leapYearStart, leapYearFinish;
@@ -676,7 +648,7 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
                             //printf("i (%c)", globrootP->headerOfNode[i]);
                             //printf("i_n (%c)", globrootP->headerOfNode[i + 1]);
                             unsigned short flag = 0;
-                            for(int k = i; k < 36; ++k) /* i in some cases bigger than 36 , fix it tommorow*/
+                            for(int k = i; k < headerLen; ++k) /* i in some cases bigger than 36 , fix it tommorow*/ // нужно как-то применить countersymbols
                             {
                                 if(k == i) continue;
                                 else if(globrootP->headerOfNode[k] == ' ' || globrootP->headerOfNode[k] == ',' || globrootP->headerOfNode[k] == '.' || globrootP->headerOfNode[k] == '?' || globrootP->headerOfNode[k] == '!' || globrootP->headerOfNode[k] == '-')
