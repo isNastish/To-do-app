@@ -209,6 +209,14 @@ struct tasksOnDay *daymainArgParser(struct tasksOnDay *, FILE *, int,  const cha
 void showDocumentation(void); /* read file where all our documentation stored and display it on the screen */
 void printingHeadandDescrp();
 
+/* printing functiouns */
+void printfirstFivecolumn(struct globalDataNode *, unsigned int);
+void printHeaderandDescrp(struct globalDataNode *, unsigned int, unsigned int); /* print headerOfNode and description if in columns enough space */
+void printtopOfTable(int, int); /* print top piece of table */
+void printbottomOfTable(void); /* print bottom part of table */
+
+int printHeader(struct globalDataNode *, unsigned int, int *, int *, int *); /* recursive function to properlt print header if not enough space in column */
+
 #endif
 
                                             /* _______________________ЗАДАЧИ______________________________________*/

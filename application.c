@@ -2,7 +2,7 @@
 
 int main(int argc, const char *argv[])
 {
-    int firstArgLen, mainflag = 1;
+    int firstArgLen, mainflag = 0;
     char *p;
     if((p = allocMemory(firstArgLen = mystrlen(*argv) + 1)) != NULL) {strcpy(p, *argv); *(p + firstArgLen) = '\0'; inArgsPtr[0] = p;}
     system("clear");
@@ -13,13 +13,13 @@ int main(int argc, const char *argv[])
     struct tasksOnDay *dayRootP = NULL; // maybe it unnecessary */
     struct globalDataNode *globRootP = NULL; // poiner to array of such structs
 
-    // if(argc > 1)
-    // {
-    //     if(*(*(argv + 1) + 1) == 'g') {globRootP = globmainArgParser(globRootP, globFP, argc, argv, &mainflag);}
-    //     else if(*(*(argv + 1) + 1) == 'l') {dayRootP = daymainArgParser(dayRootP, dayFP, argc, argv, &mainflag);}
-    //     else; /*  work with errors */
-    // }
-    // else; /* maybe display all data or work with errors */
+    if(argc > 1)
+    {
+        if(*(*(argv + 1) + 1) == 'g') {globRootP = globmainArgParser(globRootP, globFP, argc, argv, &mainflag);}
+        else if(*(*(argv + 1) + 1) == 'l') {dayRootP = daymainArgParser(dayRootP, dayFP, argc, argv, &mainflag);}
+        else; /*  work with errors */
+    }
+    else; /* maybe display all data or work with errors */
 
     while(mainflag)  /* main circle, runs when we inside programm */
     {
@@ -44,7 +44,7 @@ int main(int argc, const char *argv[])
     //fclose(dayFP);
     //fclose(globFP);
 
-    // free all allocated memory, don't forget Alex! 
+    // free all allocated memory, don't forget Alex! S
     return 0;
 }
 
@@ -101,7 +101,6 @@ struct tasksOnDay *tallocDayTask(void)
     return dayptr;
 }
 
-
 /* allocate date */
 struct universalDate *tallocDate(struct universalDate *ptrD)
 {
@@ -115,7 +114,6 @@ struct universalDate *tallocDate(struct universalDate *ptrD)
     p->day = ptrD->day, p->month = ptrD->month, p->year = ptrD->year;
     return p;
 }
-
 
 /* allocation any kind of description */
 char *allocateDescription(char *dscrp)
@@ -187,8 +185,7 @@ int insideProgArgParser(char *inArgsPtr[])
     return ptrCount;
 } 
 
-/* compare dates 12.04.2012 ................. , this function instead strcmp() */
-// обработку возвращаемых данных возлагаем на вызывающую функцию
+/* function compares two dates */
 int compareDates(struct universalDate *ptrOld, struct universalDate *ptrNew)
 {
     if(ptrOld->year > ptrNew->year || ptrOld->year < ptrNew->year) {return ptrOld->year - ptrNew->year;}
@@ -247,8 +244,6 @@ int dayOfyear(int year, int month, int day)
     return day;
 }
 
-/* ________________________________________________________________________________________________________________________________________ */
-
 struct globalDataNode *createGlobalTree(struct globalDataNode *ptrG, struct universalDate *beginDateptr, struct universalDate *finishDateptr, \
     char *descrp, char *header, char *status) // status (in progress)as a default
 {
@@ -298,7 +293,6 @@ struct globalDataNode *createGlobalTree(struct globalDataNode *ptrG, struct univ
     
 }
 
-
 /* writing whole binary tree to file and reading from here */
 struct globalDataNode *readGlobStructFromFile(struct globalDataNode *globP, FILE * filePtr)
 {
@@ -340,40 +334,22 @@ void globTreeprint(struct globalDataNode *globrootP, unsigned int taskNumber)
         globTreeprint(globrootP->leftnode, taskNumber);
     
         ++taskNumber;
-        printf(C_MAGENTA "  |");
-        printf(C_CYAN "%5d" RESET_TO_DEF, taskNumber);
-        printf(C_MAGENTA "|" RESET_TO_DEF);
-        (globrootP->beginDate->day > 9) ? printf("  %d.", globrootP->beginDate->day) : printf("  0%d.", globrootP->beginDate->day);
-        (globrootP->beginDate->month > 9) ? printf("%d.", globrootP->beginDate->month) : printf("0%d.", globrootP->beginDate->month);
-        printf("%d  ", globrootP->beginDate->year);
-        printf(C_MAGENTA "|" RESET_TO_DEF);
-
-        (globrootP->finishDate->day > 9) ? printf("  %d.", globrootP->finishDate->day) : printf("  0%d.", globrootP->finishDate->day);
-        (globrootP->finishDate->month > 9) ? printf("%d.", globrootP->finishDate->month) : printf("0%d.", globrootP->finishDate->month);
-        printf("%d  ", globrootP->finishDate->year);
-        printf(C_MAGENTA "|" RESET_TO_DEF);
-
-        printf("%5d", globrootP->amountDays);
-        printf(C_MAGENTA "|" RESET_TO_DEF);
-
-        if((mystrcmp(globrootP->statusOfTask, "in progress")) == 0) {printf(C_YELLOW " %s  ", globrootP->statusOfTask, RESET_TO_DEF);}
-        else if((mystrcmp(globrootP->statusOfTask, "done")) == 0) {printf(C_GREEN "     %s     ", globrootP->statusOfTask, RESET_TO_DEF);}
-        else if((mystrcmp(globrootP->statusOfTask, "denied")) == 0) {printf(C_RED_SLIM "    %s    ", globrootP->statusOfTask, RESET_TO_DEF);}
-        printf(C_MAGENTA "|" RESET_TO_DEF);
-
+        printfirstFivecolumn(globrootP, taskNumber);
+        
         unsigned int headerLen = strlen(globrootP->headerOfNode), descrpLen = strlen(globrootP->description);
-        if(headerLen > 35 && descrpLen < 77) {;}
-        else if(headerLen < 35 && descrpLen > 77) {;}
-        else if(headerLen > 35 && descrpLen > 77) {;}
-        else /* if enough place */
+        if(headerLen > 35 && descrpLen < 77) 
         {
-            int i, j;
-            for(i = 0; i < headerLen; i++) {printf("%c", globrootP->headerOfNode[i]);}
-            for(; i < 35; i++) {printf(" ");}; printf(C_MAGENTA "|");
-            for(j = 0; j < descrpLen; j++) {printf(C_YELLOW "%c", globrootP->description[j]);}
-            for(; j < 77; j++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
-            flagCaret = 1;
+            ;
         }
+        else if(headerLen < 35 && descrpLen > 77) 
+        {
+            ;
+        }
+        else if(headerLen > 35 && descrpLen > 77) 
+        {
+            ;
+        }
+        else {printHeaderandDescrp(globrootP, headerLen, descrpLen); flagCaret = 1;} /* if enough place */
         if(NULL != globrootP->leftnode || NULL != globrootP->rightnode) /* don't draw the last '-' line */
         {
             printf(C_MAGENTA "  |");
@@ -400,36 +376,10 @@ void displayAllGlobData(struct globalDataNode *globP)
 	for(int i = 0; i < 56; i++) {printf(C_MAGENTA " __");}; printf("\n");
 	for(int i = 0; i <= 2; i++)
 	{
-        if(i < 2)
-        {
-            printf(C_MAGENTA "  |");
-            if(i == 0) {printf(C_BLUE "  №  " RESET_TO_DEF); flag = 5;}
-            for(int j = flag; j < 170; j++)
-            {
-                if(i == 1)       {printf(C_MAGENTA "-"); continue;}
-                else if(j == 5)  {printf(C_MAGENTA "|");if(i == 0) {printf(C_BLUE "  start date  ");j = 19;}}
-                else if(j == 20) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "  finish date "); j = 34;}}
-                else if(j == 35) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE " day "); j = 40;}}
-                else if(j == 41) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "    status   ");j = 54;}}
-                else if(j == 56) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t task name\t       "); j = 91;}}
-                else if(j == 92) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t\t\tdescription\t\t\t\t    "); j = 168;}}
-                else             {printf(C_MAGENTA " ");} // j = 169
-            }
-            printf(C_MAGENTA "|\n"); flag = 0;
-        }
-        else if(i == 2) {globTreeprint(globP, taskNumber);}
-	}printf(C_MAGENTA "  |__");
-    for(int i = 0; i < 56; i++) 
-    {
-        if(i == 1)       {printf("|__");}
-        else if(i == 6)  {printf("|__");}
-        else if(i == 11) {printf("|__");}
-        else if(i == 13) {printf("|__");}
-        else if(i == 18) {printf("|__");}
-        else if(i == 30) {printf("|__");}
-        else             {printf(C_MAGENTA " __");}
-    }
-    printf("|\n\n" RESET_TO_DEF);
+        if(i < 2) {printtopOfTable(flag, i);}
+        else if(i == 2) {globTreeprint(globP, taskNumber);} /* this logic must be stored in separate functions */
+	}
+    printbottomOfTable();
 }
 
 struct globalDataNode *addGlobData(struct globalDataNode *globPtr, char *header)
@@ -569,184 +519,185 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
     else if(resultdate < 0) {finddateinTree(globrootP->rightnode, dateP);}
     else // if found - print info
     {
-        system("clear");
         int flag = 0;
+        system("clear");
         printf(C_MAGENTA "   __");
-        for(int i = 0; i < 56; i++) {printf(C_MAGENTA " __");} printf("\n");
+        for(int i = 0; i < 56; i++) {printf(" __");} printf("\n");
         for(int i = 0; i <= 2; i++)
         {
-            if( i < 2)
-            {
-                printf(C_MAGENTA "  |");
-                if(i == 0) {printf(C_BLUE "  №  " RESET_TO_DEF); flag = 5;}
-                for(int j = flag; j < 170; j++)
-                {
-                    if(i == 1)       {printf(C_MAGENTA "-"); continue;}
-                    else if(j == 5)  {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "  start date  ");j = 19;}}
-                    else if(j == 20) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "  finish date "); j = 34;}}
-                    else if(j == 35) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE " day "); j = 40;}}
-                    else if(j == 41) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "    status   ");j = 54;}}
-                    else if(j == 56) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t task name\t       "); j = 91;}}
-                    else if(j == 92) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t\t\tdescription\t\t\t\t    "); j = 168;}}
-                    else             {printf(C_MAGENTA " ");}
-                    // 35 spaces beforelast column, 76 spaces last column
-                }
-                printf(C_MAGENTA "|\n");
-                flag = 0;
-            }
+            if( i < 2) {printtopOfTable(flag, i);}
             else if(i == 2)
             {
-                /*find node and print */
-                printf(C_MAGENTA "  |");
-                printf(C_CYAN "%5d" RESET_TO_DEF, 1);
-                printf(C_MAGENTA "|" RESET_TO_DEF);
-
-                (globrootP->beginDate->day > 9) ? printf("  %d.", globrootP->beginDate->day) :
-                printf("  0%d.",globrootP->beginDate->day);
-                (globrootP->beginDate->month > 9) ? printf("%d.", globrootP->beginDate->month) :
-                printf("0%d.", globrootP->beginDate->month);
-                printf("%d  ", globrootP->beginDate->year);
-                printf(C_MAGENTA "|" RESET_TO_DEF);
-
-                (globrootP->finishDate->day > 9) ? printf("  %d.", globrootP->finishDate->day) :
-                printf("  0%d.", globrootP->finishDate->day);
-                (globrootP->finishDate->month > 9) ? printf("%d.", globrootP->finishDate->month) :
-                printf("0%d.", globrootP->finishDate->month);
-                printf("%d  ", globrootP->finishDate->year);
-                printf(C_MAGENTA "|" RESET_TO_DEF);
-
-                printf("%5d", globrootP->amountDays);
-                printf(C_MAGENTA "|" RESET_TO_DEF);
-
-                if((mystrcmp(globrootP->statusOfTask, "in progress")) == 0) {printf(C_YELLOW " %s  ", globrootP->statusOfTask, RESET_TO_DEF);}
-                else if((mystrcmp(globrootP->statusOfTask, "done")) == 0) {printf(C_GREEN "     %s     ", globrootP->statusOfTask, RESET_TO_DEF);}
-                else if((mystrcmp(globrootP->statusOfTask, "denied")) == 0) {printf(C_RED_SLIM "    %s    ", globrootP->statusOfTask, RESET_TO_DEF);}
-                printf(C_MAGENTA "|" RESET_TO_DEF);
-
-                /* if not enough space to display data (header or dascription, or both), 
-                in that case we choose which piece of data longer and work with it
-                 */
+                printfirstFivecolumn(globrootP, 1); /* filling  columns */
                 unsigned int headerLen = strlen(globrootP->headerOfNode), descrpLen = strlen(globrootP->description);
                 if(headerLen > 35 && descrpLen < 77)
                 {
-                    int i, countsymbols = 0, signPrintorNot = 0, descrpPrint = 0;
-                    for(i = 0; i < headerLen; i++)
+                    unsigned int countsymbols, printemptyColumn, descrpPrint;
+                    countsymbols = printemptyColumn = descrpPrint = 0;
+                    for(int i = 0; i < headerLen; i++)
                     {
-                        if(i == headerLen - 1 && descrpPrint == 1)
+                        if(i == headerLen - 1) /* means that now we will print the last symbol */
                         {
                             printf("%c", globrootP->headerOfNode[i]);
-                            for(int k = 0; k < (35 - countsymbols - 1); k++) {printf(" ");}
-                            printf(C_MAGENTA "|");
-                            for(int g = 0; g < 77; g++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
+                            for(int k = 0; k < (35 - countsymbols - 1); k++) {printf(" ");}; printf(C_MAGENTA "|");
+                            for(int g = 0; g < 77; g++) {printf(" ");}; printf("|\n" RESET_TO_DEF);
                             break;
                         }
-                        /*
-                        we need good recursive function here, because we actually don't now how many words we can store before size of column will be exhausted.
-                        */
-                        else if(countsymbols > 20 && (globrootP->headerOfNode[i] == ' ' || globrootP->headerOfNode[i] == ',' || globrootP->headerOfNode[i] == '.' || globrootP->headerOfNode[i] == '!' || globrootP->headerOfNode[i] == '?' || globrootP->headerOfNode[i] == '-'))
+                        else if(countsymbols > 20 && (globrootP->headerOfNode[i] == ' ' || globrootP->headerOfNode[i] == ',' || globrootP->headerOfNode[i] == '.' || 
+                            globrootP->headerOfNode[i] == '!' || globrootP->headerOfNode[i] == '?' || globrootP->headerOfNode[i] == '-'))
                         {
-                            //printf("i (%c)", globrootP->headerOfNode[i]);
-                            //printf("i_n (%c)", globrootP->headerOfNode[i + 1]);
-                            unsigned short flag = 0;
-                            for(int k = i; k < headerLen; ++k) /* i in some cases bigger than 36 , fix it tommorow*/ // нужно как-то применить countersymbols
-                            {
-                                if(k == i) continue;
-                                else if(globrootP->headerOfNode[k] == ' ' || globrootP->headerOfNode[k] == ',' || globrootP->headerOfNode[k] == '.' || globrootP->headerOfNode[k] == '?' || globrootP->headerOfNode[k] == '!' || globrootP->headerOfNode[k] == '-')
-                                {
-                                    flag = 1;
-                                    for(; i < k; ++i) 
-                                    {
-                                        printf("%c", globrootP->headerOfNode[i]); 
-                                        ++countsymbols;
-                                    } /* print all before k index */
-                                    for(int f = k; f < 36; ++f)
-                                    {
-                                        if(f == k) continue;
-                                        else if(globrootP->headerOfNode[f] == ' ' || globrootP->headerOfNode[f] == ',' || globrootP->headerOfNode[f] == '.' || globrootP->headerOfNode[f] == '?' || globrootP->headerOfNode[f] == '!' || globrootP->headerOfNode[f] == '-')
-                                        {
-                                            for(; i < f; ++i) 
-                                            {
-                                                printf("%c", globrootP->headerOfNode[i]); 
-                                                ++countsymbols;
-                                            }
-                                            break;
-                                        }
-                                    }
-                                    //printf("i (%c)", globrootP->headerOfNode[i]);
-                                    break;
-                                }
-                            }
-                            if(!flag) {printf("%c" RESET_TO_DEF, globrootP->headerOfNode[i]); ++countsymbols;}
+                            int k;
+                            printf("%c" RESET_TO_DEF, globrootP->headerOfNode[i]); ++countsymbols; ++i; k = i;
+                            printHeader(globrootP, headerLen, &countsymbols, &i, &k); /* main problem */
                             if(!descrpPrint) /* if description hasn't been printed, we print it, and increase descrpPrint flag on 1 */
                             {
-                                for(int j = 0; j < (35 - countsymbols); j++) {printf(" ");}
-                                printf(C_MAGENTA "|" RESET_TO_DEF);
-                                int x;
+                                int x; descrpPrint = 1;
+                                for(int j = 0; j < (35 - countsymbols); j++) {printf(" ");}; printf(C_MAGENTA "|" RESET_TO_DEF);
                                 for(x = 0; x < descrpLen; x++) {printf(C_YELLOW "%c", globrootP->description[x]);}
                                 for(; x < 77; x++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
                             }
                             else /* if was printed, we print empty line */
                             {
-                                for(int j = 0; j < (35 - countsymbols); j++) {printf(" ");}
-                                printf(C_MAGENTA "|");
-                                for(int g = 0; g < 77; g++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
+                                for(int j = 0; j < (35 - countsymbols); j++) {printf(" ");}; printf(C_MAGENTA "|");
+                                for(int g = 0; g < 77; g++) {printf(" ");}; printf("|\n" RESET_TO_DEF);
                             }
-                            signPrintorNot = 1;
-                            descrpPrint = 1;
+                            printemptyColumn = 1;
                             countsymbols = 0;
                             continue;
                         }
-                        else if(signPrintorNot) /* print all empty column before header column */
+                        else if(printemptyColumn) /* print all empty column before header column */
                         {
                             printf(C_MAGENTA "  |  ");
                             for(int z = 0; z < 56; z++)
                             {
-                                if(z == 1)       {printf(C_MAGENTA "|  ");}
-                                else if(z == 6)  {printf(C_MAGENTA "|  ");}
-                                else if(z == 11) {printf(C_MAGENTA "|  ");}
-                                else if(z == 13) {printf(C_MAGENTA "|  ");}
-                                else if(z == 18) {printf(C_MAGENTA "|" RESET_TO_DEF); break;} /* break when we reach the last "|" before header column */
-                                else             {printf("   " RESET_TO_DEF);}
+                                if(z == 1 || z == 6 || z == 11 || z == 13) {printf("|  ");}
+                                else if(z == 18) {printf("|" RESET_TO_DEF); break;} /* break when we reach the last "|" before header column */
+                                else             {printf("   ");}
                             }
-                            signPrintorNot = 0;
+                            printemptyColumn = 0;
                         }
                         printf("%c", globrootP->headerOfNode[i]);
                         ++countsymbols;
 
                     }
                 }
-                else if(headerLen < 35 && descrpLen > 77)
+                else if(headerLen < 35 && descrpLen > 77) /* to realize in separate func */
                 {
                     ;
                 }
-                else if(headerLen > 35 && descrpLen > 77)
+                else if(headerLen > 35 && descrpLen > 77) /* to realize in separate func */
                 {
                     ;
                 }
-                else /* if enough place for both (header and description) */
-                {
-                    int i, j;
-                    for(i = 0; i < headerLen; i++) {printf("%c", globrootP->headerOfNode[i]);}
-                    for(; i < 35; i++) {printf(" ");}; printf(C_MAGENTA "|");
-                    for(j = 0; j < descrpLen; j++) {printf(C_YELLOW "%c", globrootP->description[j]);}
-                    for(; j < 77; j++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
-                }
+                else {printHeaderandDescrp(globrootP, headerLen, descrpLen);} /* if enough place for both (header and description) */
             }
-        }
-        printf(C_MAGENTA "  |__");
-        for(int i = 0; i < 56; i++) 
-        {
-            if(i == 1)       {printf("|__");}
-            else if(i == 6)  {printf("|__");}
-            else if(i == 11) {printf("|__");}
-            else if(i == 13) {printf("|__");}
-            else if(i == 18) {printf("|__");}
-            else if(i == 30) {printf("|__");}
-            else             {printf(C_MAGENTA " __");}
-        }
-        printf("|\n\n" RESET_TO_DEF);
+        }printbottomOfTable();
         return globrootP;
     }
+}
+
+/* recursive function to properlt print header if not enough space in column */
+int printHeader(struct globalDataNode *globP, unsigned int hLen, int *nSymbols, int *i, int *k) /* this func helps me to know how much words can be stored in one line */
+{
+    //printf("i (%c)", globrootP->headerOfNode[i]);
+    //printf("i_n (%c)", globrootP->headerOfNode[i + 1]);
+    for(; *k < hLen && (*k - *i) <= (35 - *nSymbols); ++(*k)) 
+    {
+        //printf("\n");
+        //printf("before i (%c)\n", globP->headerOfNode[*i]);
+        //printf("before k (%c)\n\n", globP->headerOfNode[*k]);
+        if(globP->headerOfNode[*k] == ' ' || globP->headerOfNode[*k] == ',' || globP->headerOfNode[*k] == '.' || 
+            globP->headerOfNode[*k] == '?' || globP->headerOfNode[*k] == '!' || globP->headerOfNode[*k] == '-')
+        {
+            //printf("start :k = %d\n", *k);
+            //printf("i = %d\n", *i);
+            printf("%c", globP->headerOfNode[*i]); ++(*i); ++(*nSymbols);/* g */
+            while(*i < *k) // 27 = 'a', 28 = 'm' 29 = 'e' 30 = 's' 31 = ','
+            {
+                ++(*nSymbols);
+                ++(*i);
+                printf("%c", globP->headerOfNode[*i]); 
+            }
+            //printf("finish :k = %d\n", *k);
+            //printf("i = %d\n", *i);
+            //printf("after i (%c)\n", globP->headerOfNode[*i]);
+            //printf("after k (%c)\n\n", globP->headerOfNode[*k]);
+            ++(*k); ++(*i);
+            //if(globP->headerOfNode[*i + 1] == ' ') {++(*k);}
+            printHeader(globP, hLen, nSymbols, i, k);
+            return i;
+        } 
+    }
+}
+
+void printfirstFivecolumn(struct globalDataNode *globP, unsigned int taskNum)
+{
+    printf(C_MAGENTA "  |");
+    printf(C_CYAN "%5d" RESET_TO_DEF, taskNum);
+    printf(C_MAGENTA "|" RESET_TO_DEF);
+
+    (globP->beginDate->day > 9) ? printf("  %d.", globP->beginDate->day) : printf("  0%d.",globP->beginDate->day);
+    (globP->beginDate->month > 9) ? printf("%d.", globP->beginDate->month) : printf("0%d.", globP->beginDate->month);
+    printf("%d  ", globP->beginDate->year);
+    printf(C_MAGENTA "|" RESET_TO_DEF);
+
+    (globP->finishDate->day > 9) ? printf("  %d.", globP->finishDate->day) : printf("  0%d.", globP->finishDate->day);
+    (globP->finishDate->month > 9) ? printf("%d.", globP->finishDate->month) : printf("0%d.", globP->finishDate->month);
+    printf("%d  ", globP->finishDate->year);
+    printf(C_MAGENTA "|" RESET_TO_DEF);
+
+    printf("%5d", globP->amountDays);
+    printf(C_MAGENTA "|" RESET_TO_DEF);
+
+    if((mystrcmp(globP->statusOfTask, "in progress")) == 0) {printf(C_YELLOW " %s  ", globP->statusOfTask, RESET_TO_DEF);}
+    else if((mystrcmp(globP->statusOfTask, "done")) == 0) {printf(C_GREEN "     %s     ", globP->statusOfTask, RESET_TO_DEF);}
+    else if((mystrcmp(globP->statusOfTask, "denied")) == 0) {printf(C_RED_SLIM "    %s    ", globP->statusOfTask, RESET_TO_DEF);}
+    printf(C_MAGENTA "|" RESET_TO_DEF);
+}
+
+
+void printtopOfTable(int flag, int i)
+{
+    printf(C_MAGENTA "  |");
+    if(i == 0) {printf(C_BLUE "  №  " RESET_TO_DEF); flag = 5;}
+    for(int j = flag; j < 170; j++)
+    {
+        if(i == 1)       {printf(C_MAGENTA "-"); continue;}
+        else if(j == 5)  {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "  start date  ");j = 19;}}
+        else if(j == 20) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "  finish date "); j = 34;}}
+        else if(j == 35) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE " day "); j = 40;}}
+        else if(j == 41) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "    status   ");j = 54;}}
+        else if(j == 56) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t task name\t       "); j = 91;}}
+        else if(j == 92) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t\t\tdescription\t\t\t\t    "); j = 168;}}
+        else             {printf(C_MAGENTA " ");}
+        // 35 spaces beforelast column, 76 spaces last column
+    }
+    printf(C_MAGENTA "|\n"); flag = 0;
+}
+
+void printbottomOfTable(void)
+{
+    printf(C_MAGENTA "  |__");
+    for(int i = 0; i < 56; i++) 
+    {
+        if(i == 1)       {printf("|__");}
+        else if(i == 6)  {printf("|__");}
+        else if(i == 11) {printf("|__");}
+        else if(i == 13) {printf("|__");}
+        else if(i == 18) {printf("|__");}
+        else if(i == 30) {printf("|__");}
+        else             {printf(C_MAGENTA " __");}
+    }
+    printf("|\n\n" RESET_TO_DEF);
+}
+
+void printHeaderandDescrp(struct globalDataNode *globP, unsigned int headerLen, unsigned int descrpLen)
+{
+    int i, j;
+    for(i = 0; i < headerLen; i++) {printf("%c", globP->headerOfNode[i]);}
+    for(; i < 35; i++) {printf(" ");}; printf(C_MAGENTA "|");
+    for(j = 0; j < descrpLen; j++) {printf(C_YELLOW "%c", globP->description[j]);}
+    for(; j < 77; j++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
 }
 
 /* i don't know now how to do it */
