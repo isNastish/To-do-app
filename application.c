@@ -546,8 +546,7 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
                         else if(countsymbols > 20 && (globrootP->headerOfNode[i] == ' ' || globrootP->headerOfNode[i] == ',' || globrootP->headerOfNode[i] == '.' || 
                             globrootP->headerOfNode[i] == '!' || globrootP->headerOfNode[i] == '?' || globrootP->headerOfNode[i] == '-'))
                         {
-                            int k;
-                            printf("%c" RESET_TO_DEF, globrootP->headerOfNode[i]); ++countsymbols; ++i; k = i;
+                            int k = i;
                             printHeader(globrootP, headerLen, &countsymbols, &i, &k); /* main problem */
                             if(!descrpPrint) /* if description hasn't been printed, we print it, and increase descrpPrint flag on 1 */
                             {
@@ -611,18 +610,41 @@ int printHeader(struct globalDataNode *globP, unsigned int hLen, int *nSymbols, 
         {
             //printf("start :k = %d\n", *k);
             //printf("i = %d\n", *i);
-            printf("%c", globP->headerOfNode[*i]); ++(*i); ++(*nSymbols);/* g */
-            while(*i < *k) // 27 = 'a', 28 = 'm' 29 = 'e' 30 = 's' 31 = ','
+            //printf("%c", globP->headerOfNode[*i]); ++(*i); ++(*nSymbols);/* g */
+            while(*i < *k) // 26 = 'g' 27 = 'a', 28 = 'm' 29 = 'e' 30 = 's' 31 = ',' - not printed;
             {
+                printf("%c", globP->headerOfNode[*i]); 
                 ++(*nSymbols);
                 ++(*i);
-                printf("%c", globP->headerOfNode[*i]); 
+            }
+            if(globP->headerOfNode[*k] == ' ')
+            {
+                printf("%c", globP->headerOfNode[*i]);
+                ++(*k); ++(*i);
+            }
+            if(globP->headerOfNode[*k + 1] == ' ')
+            {
+                if(*k + 1 <= (35 - *nSymbols)) 
+                {
+                    printf("%c", globP->headerOfNode[*i]);
+                    printf("%c", globP->headerOfNode[++(*i)]);
+                    ++(*k);
+                    ++(*nSymbols);
+                }
+                else
+                {
+                    printf("%c", globP->headerOfNode[*i]);
+                    ++(*i);
+                    ++(*k);
+                    ++(*nSymbols);
+                }
+                
             }
             //printf("finish :k = %d\n", *k);
             //printf("i = %d\n", *i);
             //printf("after i (%c)\n", globP->headerOfNode[*i]);
             //printf("after k (%c)\n\n", globP->headerOfNode[*k]);
-            ++(*k); ++(*i);
+            //++(*k); ++(*i);
             //if(globP->headerOfNode[*i + 1] == ' ') {++(*k);}
             printHeader(globP, hLen, nSymbols, i, k);
             return i;
