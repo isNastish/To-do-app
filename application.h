@@ -215,7 +215,7 @@ void printHeaderandDescrp(struct globalDataNode *, unsigned int, unsigned int); 
 void printtopOfTable(int, int); /* print top piece of table */
 void printbottomOfTable(void); /* print bottom part of table */
 
-int printHeader(struct globalDataNode *, unsigned int, int *, int *, int *); /* recursive function to properlt print header if not enough space in column */
+int printHeader(struct globalDataNode *, unsigned int, unsigned int, unsigned int *, unsigned int *, unsigned int *); /* recursive function to properlt print header if not enough space in column */
 
 #endif
 

@@ -534,51 +534,8 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
                 {
                     unsigned int countsymbols, printemptyColumn, descrpPrint;
                     countsymbols = printemptyColumn = descrpPrint = 0;
-                    for(int i = 0; i < headerLen; i++)
-                    {
-                        if(i == headerLen - 1) /* means that now we will print the last symbol */
-                        {
-                            printf("%c", globrootP->headerOfNode[i]);
-                            for(int k = 0; k < (35 - countsymbols - 1); k++) {printf(" ");}; printf(C_MAGENTA "|");
-                            for(int g = 0; g < 77; g++) {printf(" ");}; printf("|\n" RESET_TO_DEF);
-                            break;
-                        }
-                        else if(countsymbols > 20 && (globrootP->headerOfNode[i] == ' ' || globrootP->headerOfNode[i] == ',' || globrootP->headerOfNode[i] == '.' || 
-                            globrootP->headerOfNode[i] == '!' || globrootP->headerOfNode[i] == '?' || globrootP->headerOfNode[i] == '-'))
-                        {
-                            int k = i;
-                            printHeader(globrootP, headerLen, &countsymbols, &i, &k); /* main problem */
-                            if(!descrpPrint) /* if description hasn't been printed, we print it, and increase descrpPrint flag on 1 */
-                            {
-                                int x; descrpPrint = 1;
-                                for(int j = 0; j < (35 - countsymbols); j++) {printf(" ");}; printf(C_MAGENTA "|" RESET_TO_DEF);
-                                for(x = 0; x < descrpLen; x++) {printf(C_YELLOW "%c", globrootP->description[x]);}
-                                for(; x < 77; x++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
-                            }
-                            else /* if was printed, we print empty line */
-                            {
-                                for(int j = 0; j < (35 - countsymbols); j++) {printf(" ");}; printf(C_MAGENTA "|");
-                                for(int g = 0; g < 77; g++) {printf(" ");}; printf("|\n" RESET_TO_DEF);
-                            }
-                            printemptyColumn = 1;
-                            countsymbols = 0;
-                            continue;
-                        }
-                        else if(printemptyColumn) /* print all empty column before header column */
-                        {
-                            printf(C_MAGENTA "  |  ");
-                            for(int z = 0; z < 56; z++)
-                            {
-                                if(z == 1 || z == 6 || z == 11 || z == 13) {printf("|  ");}
-                                else if(z == 18) {printf("|" RESET_TO_DEF); break;} /* break when we reach the last "|" before header column */
-                                else             {printf("   ");}
-                            }
-                            printemptyColumn = 0;
-                        }
-                        printf("%c", globrootP->headerOfNode[i]);
-                        ++countsymbols;
 
-                    }
+                    printHeader(globrootP, headerLen, descrpLen, &countsymbols, &printemptyColumn, &descrpPrint);
                 }
                 else if(headerLen < 35 && descrpLen > 77) /* to realize in separate func */
                 {
@@ -596,59 +553,52 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
 }
 
 /* recursive function to properlt print header if not enough space in column */
-int printHeader(struct globalDataNode *globP, unsigned int hLen, int *nSymbols, int *i, int *k) /* this func helps me to know how much words can be stored in one line */
+int printHeader(struct globalDataNode *globP, unsigned int hLen, unsigned int dLen, 
+    unsigned int *nSymbols, unsigned int *emptyColumn, unsigned int *printdescrp) /* this func helps me to know how much words can be stored in one line */
 {
-    //printf("i (%c)", globrootP->headerOfNode[i]);
-    //printf("i_n (%c)", globrootP->headerOfNode[i + 1]);
-    for(; *k < hLen && (*k - *i) <= (35 - *nSymbols); ++(*k)) 
+    for(int i = 0; i < hLen; i++)
     {
-        //printf("\n");
-        //printf("before i (%c)\n", globP->headerOfNode[*i]);
-        //printf("before k (%c)\n\n", globP->headerOfNode[*k]);
-        if(globP->headerOfNode[*k] == ' ' || globP->headerOfNode[*k] == ',' || globP->headerOfNode[*k] == '.' || 
-            globP->headerOfNode[*k] == '?' || globP->headerOfNode[*k] == '!' || globP->headerOfNode[*k] == '-')
+       if(i == hLen - 1) /* means that now we will print the last symbol */
+       {
+           printf("%c", globP->headerOfNode[i]);
+           for(int k = 0; k < (35 - *nSymbols - 1); k++) {printf(" ");}; printf(C_MAGENTA "|");
+           for(int g = 0; g < 77; g++) {printf(" ");}; printf("|\n" RESET_TO_DEF);
+           break;
+        }
+        else if(globP->headerOfNode[i] == ' ' || globP->headerOfNode[i] == ',' || globP->headerOfNode[i] == '.' || 
+            globP->headerOfNode[i] == '!' || globP->headerOfNode[i] == '?' || globP->headerOfNode[i] == '-')
         {
-            //printf("start :k = %d\n", *k);
-            //printf("i = %d\n", *i);
-            //printf("%c", globP->headerOfNode[*i]); ++(*i); ++(*nSymbols);/* g */
-            while(*i < *k) // 26 = 'g' 27 = 'a', 28 = 'm' 29 = 'e' 30 = 's' 31 = ',' - not printed;
+            int k = i;
+            printHeader(globP, hLen, nSymbols, emptyColumn, printdescrp); /* main problem */
+            if(!*printdescrp) /* if description hasn't been printed, we print it, and increase descrpPrint flag on 1 */
             {
-                printf("%c", globP->headerOfNode[*i]); 
-                ++(*nSymbols);
-                ++(*i);
+                int x; printdescrp = 1;
+                for(int j = 0; j < (35 - *nSymbols); j++) {printf(" ");}; printf(C_MAGENTA "|" RESET_TO_DEF);
+                for(x = 0; x < dLen; x++) {printf(C_YELLOW "%c", globP->description[x]);}
+                for(; x < 77; x++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
             }
-            if(globP->headerOfNode[*k] == ' ')
+            else /* if was printed, we print empty line */
             {
-                printf("%c", globP->headerOfNode[*i]);
-                ++(*k); ++(*i);
+                for(int j = 0; j < (35 - *nSymbols); j++) {printf(" ");}; printf(C_MAGENTA "|");
+                for(int g = 0; g < 77; g++) {printf(" ");}; printf("|\n" RESET_TO_DEF);
             }
-            if(globP->headerOfNode[*k + 1] == ' ')
+            *emptyColumn = 1;
+            *nSymbols = 0;
+            continue;
+        }
+        else if(*emptyColumn) /* print all empty column before header column */
+        {
+            printf(C_MAGENTA "  |  ");
+            for(int z = 0; z < 56; z++)
             {
-                if(*k + 1 <= (35 - *nSymbols)) 
-                {
-                    printf("%c", globP->headerOfNode[*i]);
-                    printf("%c", globP->headerOfNode[++(*i)]);
-                    ++(*k);
-                    ++(*nSymbols);
-                }
-                else
-                {
-                    printf("%c", globP->headerOfNode[*i]);
-                    ++(*i);
-                    ++(*k);
-                    ++(*nSymbols);
-                }
-                
+                if(z == 1 || z == 6 || z == 11 || z == 13) {printf("|  ");}
+                else if(z == 18) {printf("|" RESET_TO_DEF); break;} /* break when we reach the last "|" before header column */
+                else             {printf("   ");}
             }
-            //printf("finish :k = %d\n", *k);
-            //printf("i = %d\n", *i);
-            //printf("after i (%c)\n", globP->headerOfNode[*i]);
-            //printf("after k (%c)\n\n", globP->headerOfNode[*k]);
-            //++(*k); ++(*i);
-            //if(globP->headerOfNode[*i + 1] == ' ') {++(*k);}
-            printHeader(globP, hLen, nSymbols, i, k);
-            return i;
-        } 
+            *emptyColumn = 0;
+        }
+        printf("%c", globP->headerOfNode[i]);
+        ++(*nSymbols);
     }
 }
 
