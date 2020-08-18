@@ -215,8 +215,23 @@ void printHeaderandDescrp(struct globalDataNode *, unsigned int, unsigned int); 
 void printtopOfTable(int, int); /* print top piece of table */
 void printbottomOfTable(void); /* print bottom part of table */
 
-int printHeader(struct globalDataNode *, unsigned int, unsigned int, unsigned int *, unsigned int *, unsigned int *); /* recursive function to properlt print header if not enough space in column */
+/* 
+recursive func that print max amount of words which can be stored in one single line in column 
+*/
+void printHeader(struct globalDataNode *globP, unsigned int header_len, 
+    unsigned int *nSymbols, int *i, int *k); 
+void printDescription(struct globalDataNode *globP, unsigned int description_len,
+    unsigned int *nSymbols, int *i, int *k); // ptiny description recursively
 
+
+void printWholeHeader(struct globalDataNode *globP, unsigned int headerLen, 
+    unsigned int descrpLen); /* function that print whole header from start to finish */
+void printWholeDescription(struct globalDataNode *globP, 
+    unsigned int descriptionLen); // function that prints whole description if size more then size of column 
+
+
+struct globalDataNode makeTreeBalanced(struct globalDataNode *globP); /* function that make tree balanced always, 
+        rebuild tree choicing average element by date as a root */
 #endif
 
                                             /* _______________________ЗАДАЧИ______________________________________*/
@@ -274,5 +289,9 @@ int printHeader(struct globalDataNode *, unsigned int, unsigned int, unsigned in
         мы делаем еще один цикл что-бы проверить будет ли еще хоть один пробел или запята я или точка.. до конца размера колонки
         если будет, то мы вписываем это слово до пробела, а все остальные переносим на новую строку
         если нет, переносим все начиная от первого пробела после 20 символов.
+
+10   - добавить возможность модифицировать полностью все данны в таблице, сначала модифицировать 
+        оглавление и описание задачи, а потом к датам, так-как с сроками сложнее, 
+        нужно поменять дату и перестроить бинарное дерево 
 
 */
