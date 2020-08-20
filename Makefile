@@ -1,5 +1,7 @@
 # -*- Makefile -*-
 
+# I prefer all steps in compilation.
+
 application: application.o
 	gcc application.o -o application
 

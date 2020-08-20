@@ -211,9 +211,16 @@ void printingHeadandDescrp();
 
 /* printing functiouns */
 void printfirstFivecolumn(struct globalDataNode *, unsigned int);
-void printHeaderandDescrp(struct globalDataNode *, unsigned int, unsigned int); /* print headerOfNode and description if in columns enough space */
 void printtopOfTable(int, int); /* print top piece of table */
 void printbottomOfTable(void); /* print bottom part of table */
+
+/* print headerOfNode and description if in columns enough space */
+void display_header_descrp(struct globalDataNode *globP, unsigned int h_len, unsigned int d_len); 
+
+/* print headerOfNode and description if in both columns not enough space to store data in one line */
+void display_owersize_header_descrp(struct globalDataNode *globP, unsigned int h_len, unsigned int d_len);
+int display_owersize_header(struct globalDataNode *globP, unsigned int h_len, int *h_i);
+int display_owersize_descrp(struct globalDataNode *globP, unsigned int d_len, int *d_i);
 
 /* 
 recursive func that print max amount of words which can be stored in one single line in column 
@@ -230,7 +237,7 @@ void printWholeDescription(struct globalDataNode *globP,
     unsigned int descriptionLen); // function that prints whole description if size more then size of column 
 
 
-struct globalDataNode makeTreeBalanced(struct globalDataNode *globP); /* function that make tree balanced always, 
+struct globalDataNode *makeTreeBalanced(struct globalDataNode *globP); /* function that make tree balanced always, 
         rebuild tree choicing average element by date as a root */
 #endif
 
@@ -262,7 +269,7 @@ struct globalDataNode makeTreeBalanced(struct globalDataNode *globP); /* functio
 2    - реализовать все тоже управление которое есть через командную строку, только внутри программы,
         нужен цикл который будет все время держать программу 
 
-3    - решить проблему если дерево не сбалансированное, 
+3!    - решить проблему если дерево не сбалансированное, 
         как-то перезаписывать дерево выбирая среднюю дату между самой старой и самой новой!
         может перед тем как строить древо, заносить элементы в массив в порядке возрастания дат,
         выбирать средний элемент  как root и от него уже строить дерево.
@@ -294,4 +301,6 @@ struct globalDataNode makeTreeBalanced(struct globalDataNode *globP); /* functio
         оглавление и описание задачи, а потом к датам, так-как с сроками сложнее, 
         нужно поменять дату и перестроить бинарное дерево 
 
+11   - исправить ошибку с вводом, так-как сейчас в заголовок можно вводить не больше
+        100 символов по моему, нужно зделать так что-бы можно было вводить сколько угодно!
 */

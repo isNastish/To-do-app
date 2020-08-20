@@ -350,19 +350,11 @@ void globTreeprint(struct globalDataNode *globrootP, unsigned int taskNumber)
         } 
         else if(headerLen > 35 && descrpLen > 77) // if both data bigger then their column sizes
         {
-            ;
+            display_owersize_header_descrp(globrootP, headerLen, descrpLen);
         }
-        else {printHeaderandDescrp(globrootP, headerLen, descrpLen);} // if enough place
-        //if(NULL != globrootP->leftnode || NULL != globrootP->rightnode) /* don't draw the last '-' line */
-        //{
+        else {display_header_descrp(globrootP, headerLen, descrpLen);} // if enough place
         printf(C_MAGENTA "  |");
         for(int i = 0; i < 170; i++) {printf("-");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
-        //flagCaret = 1;
-        //}
-        // else if(!flagCaret) {printf(C_MAGENTA "|\n" RESET_TO_DEF);}
-        /*
-         printing header of task and description 
-        */
         globTreeprint(globrootP->rightnode, taskNumber);
         ++taskNumber;
     }
@@ -539,21 +531,25 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
                 }
                 else if(headerLen < 36 && descrpLen > 77) /* to realize in separate func */
                 {
-                    ;
+                    int i;
+                    for(i = 0; i < (int)headerLen; i++) {printf("%c", globrootP->headerOfNode[i]);}
+                    for(; i < 35; i++) {printf(" ");}; printf(C_MAGENTA "|" RESET_TO_DEF);
+                    printWholeDescription(globrootP, descrpLen);
                 }
                 else if(headerLen > 35 && descrpLen > 77) /* to realize in separate func */
                 {
-                    ;
+                    display_owersize_header_descrp(globrootP, headerLen, descrpLen);
                 }
-                else {printHeaderandDescrp(globrootP, headerLen, descrpLen);} /* if enough place for both (header and description) */
+                else {display_header_descrp(globrootP, headerLen, descrpLen);} /* if enough place for both (header and description) */
             }
         }printbottomOfTable();
         return globrootP;
     }
 }
 
-/* recursive function to properlt print header if not enough space in column */
-void printWholeHeader(struct globalDataNode *globP, unsigned int h_len, unsigned int d_len) /* this func helps me to know how much words can be stored in one line */
+/* recursive function to properlt print header if not enough space in column 
+this func helps me to know how much words can be stored in one line */
+void printWholeHeader(struct globalDataNode *globP, unsigned int h_len, unsigned int d_len) 
 {
     unsigned int nSymbolsinLine, emptyColumn, printdescrp;
     nSymbolsinLine = emptyColumn = printdescrp = 0;
@@ -564,13 +560,12 @@ void printWholeHeader(struct globalDataNode *globP, unsigned int h_len, unsigned
         {
            ++nSymbolsinLine;
            printf("%c", globP->headerOfNode[i]);
-           //printf("nS (%d)", nSymbolsinLine);
            for(int k = 0; k < (35 - nSymbolsinLine); k++) {printf(" ");}; printf(C_MAGENTA "|"); // 35 inclusively
            for(int g = 0; g < 77; g++) {printf(" ");}; printf("|\n" RESET_TO_DEF); // 77 inclusively
            break;
         }
-        // decrease 20 on 17 in future
-        else if(nSymbolsinLine > 20 && (globP->headerOfNode[i] == ' ' || globP->headerOfNode[i] == ',' || globP->headerOfNode[i] == '.' || 
+        // decrease 20 on 15 in future
+        else if(nSymbolsinLine > 10 && (globP->headerOfNode[i] == ' ' || globP->headerOfNode[i] == ',' || globP->headerOfNode[i] == '.' || 
             globP->headerOfNode[i] == '!' || globP->headerOfNode[i] == '?' || globP->headerOfNode[i] == '-'))
         {
             int k = i;
@@ -578,7 +573,6 @@ void printWholeHeader(struct globalDataNode *globP, unsigned int h_len, unsigned
             if(!printdescrp) /* if description hasn't been printed, we print it, and increase descrpPrint flag on 1 */
             {
                 int x; printdescrp = 1;
-                //printf("nS (%d)", nSymbolsinLine);
                 for(int j = 0; j < (35 - nSymbolsinLine); j++) {printf(" ");}; printf(C_MAGENTA "|" RESET_TO_DEF);
                 for(x = 0; x < d_len; x++) {printf("%c", globP->description[x]);}
                 for(; x < 77; x++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
@@ -600,8 +594,7 @@ void printWholeHeader(struct globalDataNode *globP, unsigned int h_len, unsigned
                 if(z == 1 || z == 6 || z == 11 || z == 13) {printf("|  ");}
                 else if(z == 18) {printf("|" RESET_TO_DEF); break;} /* break when we reach the last "|" before header column */
                 else             {printf("   ");}
-            }
-            emptyColumn = 0;
+            }emptyColumn = 0;
         }
         printf("%c", globP->headerOfNode[i]);
         ++nSymbolsinLine;
@@ -646,7 +639,7 @@ void printWholeDescription(struct globalDataNode *globP, unsigned int d_len)
            break;
         }
         // decrease 50 on 45 in future,
-        else if(nSymbolsinLine > 50 && (globP->description[i] == ' ' || globP->description[i] == ',' || globP->description[i] == '.' || 
+        else if(nSymbolsinLine > 45 && (globP->description[i] == ' ' || globP->description[i] == ',' || globP->description[i] == '.' || 
             globP->description[i] == '!' || globP->description[i] == '?' || globP->description[i] == '-'))
         {
             int k = i;
@@ -695,6 +688,106 @@ void printDescription(struct globalDataNode *globP, unsigned int d_len, unsigned
         }
     }
 }
+
+
+void display_owersize_header_descrp(struct globalDataNode *globP, unsigned int h_len, unsigned int d_len)
+{
+    unsigned int temp_h_len = h_len, temp_d_len = d_len;
+    int h_i, d_i, h_flag, d_flag;
+    h_i = d_i = h_flag = d_flag = 0;
+
+    /* we must find first data that was totaly ptinted, temp_len of this data will be 0,
+    so the data that left will have more lines in table so we must be navigated on this data
+    */
+    while(1)
+    {
+        // returning value zero means that whole data was printed.
+        if(temp_h_len) {temp_h_len = display_owersize_header(globP, h_len, &h_i); ++h_flag;} //printf("temp_h_len (%d)", temp_h_len);} 
+        if(temp_d_len) {temp_d_len = display_owersize_descrp(globP, d_len, &d_i); ++d_flag;} //printf("temp_d_len (%d)", temp_d_len);}
+
+        /* we must check which data was totaly printed first, 
+        if descsription - means that header data has more lines and we must print empty description column,
+        else simply reture, we must create flag to see witch data will be printed earlier.
+        */
+        if(temp_h_len == 0 && temp_d_len == 0)
+        {
+            if(h_flag > d_flag) {for(int j = 0; j < 77; j++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF); return;}
+            else return;
+        }
+        // display empty columns 
+        printf(C_MAGENTA "  |  ");
+        for(int j = 0; j < 56; ++j)
+        {
+            if(j == 1 || j == 6 || j == 11 || j == 13) printf("|  ");
+            else if(j == 18)    {printf("|" RESET_TO_DEF); break;}
+            else                printf("   ");
+        }
+    }
+}
+
+
+int display_owersize_header(struct globalDataNode *globP, unsigned int h_len, int *h_i)
+{
+    unsigned int nSymbolsinLine = 0;
+
+    for(; *h_i < h_len; ++(*h_i))
+    {
+        if(*h_i == h_len - 1 && nSymbolsinLine < 36) /* means that now we will print the last symbol, but if not enough place */
+        {
+           ++nSymbolsinLine;
+           printf("%c", globP->headerOfNode[*h_i]);
+           for(int k = 0; k < (35 - nSymbolsinLine); k++) {printf(" ");}; printf(C_MAGENTA "|" RESET_TO_DEF); // 35 inclusively
+           return 0;
+        }
+        else if(nSymbolsinLine > 10 && (globP->headerOfNode[*h_i] == ' ' || globP->headerOfNode[*h_i] == ',' || globP->headerOfNode[*h_i] == '.' || 
+            globP->headerOfNode[*h_i] == '!' || globP->headerOfNode[*h_i] == '?' || globP->headerOfNode[*h_i] == '-'))
+        {
+            int k = *h_i;
+            printHeader(globP, h_len, &nSymbolsinLine, h_i, &k); /* k = i in first call */
+            //printf("i (%c)", globP->description[*h_i]);
+            for(int j = 0; j < (35 - nSymbolsinLine); j++) {printf(" ");}; printf(C_MAGENTA "|" RESET_TO_DEF);
+            nSymbolsinLine = 0;
+            return (*h_i == h_len) ? 0 : 1;
+        }
+        printf("%c", globP->headerOfNode[*h_i]);
+        ++nSymbolsinLine;
+    }
+    // printf("(%d)", *h_i);
+    // printf("s(%d)", nSymbolsinLine);
+    // printf("(%c)", globP->headerOfNode[*h_i]);
+    // printf("BOOM");
+    return 0;
+}
+
+int display_owersize_descrp(struct globalDataNode *globP, unsigned int d_len, int *d_i)
+{
+    unsigned int nSymbolsinLine = 0;
+
+    for(; *d_i < d_len; ++(*d_i))
+    {
+        if(*d_i == d_len - 1 && nSymbolsinLine < 78) /* means that now we will print the last symbol, but if not enough place */
+        {
+           ++nSymbolsinLine;
+           printf("%c", globP->description[*d_i]);
+           for(int j = 0; j < (77 - nSymbolsinLine); j++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF); // 77 inclusively
+           return 0;
+        }
+        else if(nSymbolsinLine > 45 && (globP->description[*d_i] == ' ' || globP->description[*d_i] == ',' || globP->description[*d_i] == '.' 
+            || globP->description[*d_i] == '!' || globP->description[*d_i] == '?' || globP->description[*d_i] == '-'))
+        {
+            int k = *d_i;
+            printDescription(globP, d_len, &nSymbolsinLine, d_i, &k);
+            //printf("i (%c)", globP->description[*d_i]);
+            for(int j = 0; j < (77 - nSymbolsinLine); j++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
+            nSymbolsinLine = 0;
+            return (*d_i == d_len - 1) ? 0 : 1;
+        }
+        printf("%c", globP->description[*d_i]);
+        ++nSymbolsinLine;
+    }
+    return 0;
+}
+
 
 void printfirstFivecolumn(struct globalDataNode *globP, unsigned int taskNum)
 {
@@ -756,7 +849,7 @@ void printbottomOfTable(void)
     printf("|\n\n" RESET_TO_DEF);
 }
 
-void printHeaderandDescrp(struct globalDataNode *globP, unsigned int headerLen, unsigned int descrpLen)
+void display_header_descrp(struct globalDataNode *globP, unsigned int headerLen, unsigned int descrpLen)
 {
     int i, j;
     for(i = 0; i < (int)headerLen; ++i) {printf("%c", globP->headerOfNode[i]);}
@@ -903,4 +996,10 @@ struct tasksOnDay *daymainArgParser(struct tasksOnDay *daytasksP, FILE *dayFP, i
         printf(C_RED "%s\t%s\n", *(argv + 1), "error: incorrect comand line argument!" RESET_TO_DEF);
     }
     return daytasksP;
+}
+
+
+struct globalDataNode *makeTreeBalanced(struct globalDataNode *globP) // to make tree balanced 
+{
+    ;
 }
