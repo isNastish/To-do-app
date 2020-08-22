@@ -5,19 +5,15 @@ there will be only primitivs.
 All files stored in "/home/nastish/MyProject/database/" 
 
 For detail description of the app see README.txt file 
-
 */
+
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-/*______________________COLORS SET___________________________
-
-All colors for printing our data to console, detail information 
-about colors see here: 
-https://ru.wikipedia.org/wiki/Управляющие_последовательности_ANSI
-
+/*
+main colors macros.
+For detail info see here. https://en.wikipedia.org/wiki/ANSI_escape_code
 */
-/* main colors macros */
 
 #define C_BLACK                 "\x1b[30m"
 #define C_RED                   "\x1b[31;1m"
@@ -42,14 +38,12 @@ https://ru.wikipedia.org/wiki/Управляющие_последователь�
 #define PATH_SIZE 60 // size of array that contains path
 #define FLAGSARRAY_LEN (sizeof flagsArrayDay / sizeof(struct daycmdFuncsWithTwoArgs))
 #define DEF_STATUS "in progress"
-#define MAXLINES 4 // default name, flag, another flag, date or header.
+#define MAXLINES 4 // executable file name, flag, another flag, date or header.
 #define BUFSIZE 100
 #define ALLOCSIZE 1000
-//#define getch(c) ((bufp > 0) ? (buf[--bufp]) : getac)
-
-/* getch() and ungetch() */
-char buf[BUFSIZE];
-int bufp = 0;
+#define HEADER_DESCRP_LEN 50000
+#define DATE_LEN 11
+#define DOC_FILE_PATH "/home/nastish/MyProjects/To-do-app/database/appDoc.txt"
 
 /* creating new files */
 FILE *createFile(FILE *, char *);
@@ -101,7 +95,7 @@ struct globalDataNode *createGlobalTree(struct globalDataNode *, struct universa
 //struct datTasksNode *createDayTree(struct dayTasksNode *, int, int); // building a tree of struct dayTasksNode? time in hours, in minutes
 /* functions to allocate all description of structs*/
 char *allocateDescription(char *); 
-void globTreeprint(struct globalDataNode *, unsigned int);
+void globTreeprint(struct globalDataNode *);
 
 
 /* simple functions for working with strings or numbers or something else */
@@ -180,17 +174,10 @@ struct daycmdFuncsWithTwoArgs
 /* parcer function */
 char *inArgsPtr[MAXLINES];
 
-static char allocatedBuffer[ALLOCSIZE];
-static char *allocBufP = allocatedBuffer;
-
 //FILE* parserCmlineArgc(int, const char *[]);
 int insideProgArgParser(char *[]); // returns how many args was written
-void descriptionOfTaskParser(char *); // парсер описаня задачи
+void descriptionOfTaskParser(char *); // description parcer
 int mygetLine(char [], int);
-char *allocMemory(int); // int amount
-void freeAllocMem(char *);
-
-
 
 /* writing and reading struct from file */
 void writeGlobStructToFile(struct globalDataNode *, FILE *);
@@ -200,8 +187,8 @@ void writeDayStructToFile(struct tasksOnDay *, FILE *);
 struct tasksOnDay *readDayStructFromFile(FILE *);
 
 /* functions for freeing memory */
-void freeStruct(void *);
-void freeDescription(char *);
+//void freeStruct(void *);
+//void freeDescription(char *);
 
 struct globalDataNode *globmainArgParser(struct globalDataNode *, FILE *, int, const char *[], int *);
 struct tasksOnDay *daymainArgParser(struct tasksOnDay *, FILE *, int,  const char *[], int *);
@@ -239,6 +226,8 @@ void printWholeDescription(struct globalDataNode *globP,
 
 struct globalDataNode *makeTreeBalanced(struct globalDataNode *globP); /* function that make tree balanced always, 
         rebuild tree choicing average element by date as a root */
+void delete_whole_tree(struct globalDataNode *rootP); // distruct whole tree
+
 #endif
 
                                             /* _______________________ЗАДАЧИ______________________________________*/
@@ -303,4 +292,6 @@ struct globalDataNode *makeTreeBalanced(struct globalDataNode *globP); /* functi
 
 11   - исправить ошибку с вводом, так-как сейчас в заголовок можно вводить не больше
         100 символов по моему, нужно зделать так что-бы можно было вводить сколько угодно!
+
+12   - rewrite all function names, etc using underscore
 */

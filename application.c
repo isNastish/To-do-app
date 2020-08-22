@@ -2,10 +2,12 @@
 
 int main(int argc, const char *argv[])
 {
-    int firstArgLen, mainflag = 0;
-    char *p;
-    if((p = allocMemory(firstArgLen = mystrlen(*argv) + 1)) != NULL) {strcpy(p, *argv); *(p + firstArgLen) = '\0'; inArgsPtr[0] = p;}
     system("clear");
+    int firstArgLen, main_flag = 0; char *p;
+
+    // first element is always name of executable file
+    if((p = (char *)malloc(firstArgLen = mystrlen(*argv) + 1)) != NULL) {strcpy(p, *argv); *(p + firstArgLen) = '\0'; inArgsPtr[0] = p;} 
+    assert(p != NULL);
 
     FILE* dayFP = createFile(dayFP, "dayData.bin");
     FILE* globFP = createFile(globFP, "globData.bin");
@@ -13,38 +15,53 @@ int main(int argc, const char *argv[])
     struct tasksOnDay *dayRootP = NULL; // maybe it unnecessary */
     struct globalDataNode *globRootP = NULL; // poiner to array of such structs
 
+    // decide what type of data we will be operate on
     if(argc > 1)
     {
-        if(*(*(argv + 1) + 1) == 'g') {globRootP = globmainArgParser(globRootP, globFP, argc, argv, &mainflag);}
-        else if(*(*(argv + 1) + 1) == 'l') {dayRootP = daymainArgParser(dayRootP, dayFP, argc, argv, &mainflag);}
-        else; /*  work with errors */
+        if(*(*(argv + 1) + 1) == 'g') {globRootP = globmainArgParser(globRootP, globFP, argc, argv, &main_flag);} // global data
+        else if(*(*(argv + 1) + 1) == 'l') {dayRootP = daymainArgParser(dayRootP, dayFP, argc, argv, &main_flag);} // local data
+        else if(mystrcmp(*(argv + 1), "--help") == 0) {showAllDocumentation();}
+        else 
+        {
+            printf(C_RED_SLIM "error: not correct argument <%s>\n" RESET_TO_DEF, *(argv + 1));
+            printf("see documentation '--help'\n");
+            main_flag = 1;
+        }
     }
-    else; /* maybe display all data or work with errors */
-
-    while(mainflag)  /* main circle, runs when we inside programm */
+    else main_flag = 1;
+    while(main_flag)  /* main circle, runs when we inside programm */
     {
-        printf(C_YELLOW "~:" RESET_TO_DEF); // sign that we can write all allowed commands here
+        printf(C_YELLOW "~:" RESET_TO_DEF); // user input. 
         int countArgs = insideProgArgParser(inArgsPtr);
         if(countArgs > 1)
         {
-            if(*(*(inArgsPtr + 1) + 1) == 'g') {globRootP = globmainArgParser(globRootP, globFP, countArgs, inArgsPtr, &mainflag);}
-            else if(*(*(inArgsPtr + 1) + 1) == 'l') {dayRootP = daymainArgParser(dayRootP, dayFP, countArgs, inArgsPtr, &mainflag);}
-            else; /* work with errors */
+            if(*(*(inArgsPtr + 1) + 1) == 'g') {globRootP = globmainArgParser(globRootP, globFP, countArgs, inArgsPtr, &main_flag);}
+            else if(*(*(inArgsPtr + 1) + 1) == 'l') {dayRootP = daymainArgParser(dayRootP, dayFP, countArgs, inArgsPtr, &main_flag);}
+            else if(mystrcmp(*(inArgsPtr + 1), "--help") == 0) {showAllDocumentation();}
+            else // undefined "command line" flag
+            {
+                printf(C_RED_SLIM "error: unknown command line flag <%s>\n" RESET_TO_DEF, *(inArgsPtr + 1));
+                printf("see allowed arguments '--help'\n");
+                continue;
+            }
         }
-        else; /* work with errors or display all data */
-        //system("clear");// clean console
-        //mainflag = 0;
+        else // if press CTRL + D on linux, countArgs will be 1
+        {
+            printf(C_RED_SLIM "\nerror: no arguments were detected.\n" RESET_TO_DEF);
+            printf("see allowed arguments '--help'\n");
+            break;
+        }
     }
-    //globTreeprint(globRootP, ...);
-    // rewrite all data to fils if something was changed */
-
-    //writeGlobStructToFile(globRootP, globFP);
+    writeGlobStructToFile(globRootP, globFP);
     //writeDayStructToFile(dayRootPtr, dayfileP);
+    fclose(dayFP);
+    fclose(globFP);
 
-    //fclose(dayFP);
-    //fclose(globFP);
-
-    // free all allocated memory, don't forget Alex! S
+    delete_whole_tree(globRootP);
+    /*
+    free all allocated memory, don't forget Alex! 
+    free(inArgsPtr);
+    */
     return 0;
 }
 
@@ -52,26 +69,17 @@ FILE *createFile(FILE *fileP, char *fileName)
 {
     char data_folder_path[60] = "/home/nastish/MyProjects/To-do-app/database/";
     void strconcat(char *, const char *);
-
     strconcat(data_folder_path, fileName);
     fileP = fopen(data_folder_path, "ab+"); // open file for read and write, don't rewrite the file 
-    
-    if(NULL == fileP)
-    {
-        printf("error: while openning file!\n");
-        exit(1);
-    }
+    assert(fileP != NULL);
     return fileP;
 }
-
 
 /* concatenation func */
 void strconcat(char *destination, const char *source)
 {
-    while(*destination)
-        destination++;
-    while((*destination++ = *source++) != '\0')
-        ;
+    while(*destination) destination++;
+    while((*destination++ = *source++) != '\0');
 }
 
 /* allocation for structure of type struct globalDataNode */
@@ -79,13 +87,8 @@ struct globalDataNode *tallocGlobalTask(void)
 {
     struct globalDataNode *globptr;
     globptr = (struct globalDataNode *) malloc(sizeof(struct globalDataNode));
-
-    if(NULL == globptr)
-    {
-        //do something? now i don't know what 
-    }
+    assert(globptr != NULL);
     return globptr;
-
 }
 
 /* allocation for structure of type dayTasksNode */
@@ -93,11 +96,7 @@ struct tasksOnDay *tallocDayTask(void)
 {
     struct tasksOnDay *dayptr;
     dayptr = (struct tasksOnDay *) malloc(sizeof(struct tasksOnDay));
-
-    if(NULL == dayptr)
-    {
-        // do somthing to avoid crash
-    }
+    assert(dayptr != NULL);
     return dayptr;
 }
 
@@ -106,11 +105,7 @@ struct universalDate *tallocDate(struct universalDate *ptrD)
 {
     struct universalDate *p;
     p = (struct universalDate *) malloc(sizeof(struct universalDate));
-
-    if(NULL == p)
-    {
-        //..........................
-    }
+    assert(p != NULL);
     p->day = ptrD->day, p->month = ptrD->month, p->year = ptrD->year;
     return p;
 }
@@ -120,63 +115,42 @@ char *allocateDescription(char *dscrp)
 {
     char *descriptionP;
     descriptionP = (char *) malloc(mystrlen(dscrp) + 1); // 1 for symbol '\0' 
-
-    if(NULL == descriptionP)
-    {
-        // do somthing to deal with error
-    }
+    assert(descriptionP != NULL);
     strcpy(descriptionP, dscrp);
     return descriptionP;
 }
 
-char *allocMemory(int amount)
-{
-    if(allocatedBuffer + ALLOCSIZE - allocBufP >= amount)
-    {
-        allocBufP += amount;
-        return allocBufP - amount; // return pointer at the begging of recently allocated word
-    }
-    else {printf("allocMemory error: not enough space in buffer!\n");} // work with errors
-}
-
-void freeAllocMem(char *freeP) 
-{
-    if(freeP >= allocatedBuffer && freeP < allocatedBuffer + ALLOCSIZE) {allocBufP = freeP;}
-}
-
-int mygetLine(char args[], int lim) // type missmatvh
+/* important function in our prog, it reads all arguments and text from input */
+int mygetLine(char *args, int lim)
 {
     char symbol;
-    int i;
-    for(i = 0; i < lim && (symbol = getchar()) != EOF && symbol != '\n'; i++) 
-    {
-        args[i] = symbol;
-    }
-    if(symbol == '\n') 
-    {
-        args[i++] = symbol;
-    }
-    args[i] = '\0';
-    return i; // as a lenght of line
+    int len;
+    for(len = 0; len < lim && (symbol = getchar()) != EOF && symbol != '\n'; len++) {*(args + len) = symbol;}
+    if(symbol == '\n') {*(args + len++) = symbol;}
+    *(args + len) = '\0';
+    return len;
 }
 
+/* DON'T FORGET TO FREE THE MEMORY ALLOCATED HERE */
 int insideProgArgParser(char *inArgsPtr[])
 {
     int i, lenLine, ptrCount = 1, argLen = 0;
-    char *p, argsline[BUFSIZE], arg[BUFSIZE / 2]; // we need size not limited, we need pointers, very important error FIX
-    lenLine = mygetLine(argsline, BUFSIZE);
+    char *p, argsline[HEADER_DESCRP_LEN + 50], arg[HEADER_DESCRP_LEN];
+    lenLine = mygetLine(argsline, HEADER_DESCRP_LEN + 50);
     
     for(i = 0; i < lenLine; i++)
     {
-        if(!isspace(argsline[i])) {arg[argLen] = argsline[i]; ++argLen; continue;}
+        if(!isspace(*(argsline + i))) {arg[argLen] = *(argsline + i); ++argLen; continue;}
         else
         {
-            if((p = allocMemory(argLen + 1)) == NULL) {/* some work with errors */;} // plus 1 for '\0'
+            if((p = (char *)malloc(argLen + 1)) == NULL) {assert(p != NULL); /* some work with errors */;} // plus 1 for '\0'
             else {arg[argLen] = '\0';strcpy(p, arg); inArgsPtr[ptrCount++] = p; argLen = 0;}
-            if(argsline[i  + 1] != '-' && argsline[i] != '\n')
+
+            /* in case if we skip all flags and reach sentences that will be stored in tree */
+            if(*(argsline + i + 1) != '-' && *(argsline + i) != '\n')
             {
-                for(i += 1, argLen = 0; i < lenLine; i++, argLen++) {arg[argLen] = argsline[i];}
-                if((p = allocMemory(argLen)) == NULL) {/* work with error */;}
+                for(i += 1, argLen = 0; i < lenLine; i++, argLen++) {arg[argLen] = *(argsline + i);}
+                if((p = (char *)malloc(argLen)) == NULL) {assert(p != NULL); /* work with error */;}
                 else {arg[argLen - 1] = '\0'; strcpy(p, arg); inArgsPtr[ptrCount++] = p;break;}
             }
             else {continue;}
@@ -210,7 +184,8 @@ int amountOfDaysPerTask(struct universalDate *startptr, struct universalDate *en
     if(startptr->year == endptr->year)
         return finish - start;
     else
-    {/* if 1 - leap, 0 - not leap */
+    {
+        /* if 1 - leap, 0 - not leap */
         leapYearStart = startptr->year % 4 == 0 && startptr->year % 100 != 0 || startptr->year % 400 == 0; // check if begin year is leap or not 
         leapYearFinish = endptr->year % 4 == 0 && endptr->year % 100 != 0 || endptr->year % 400 == 0; // if finish year leap pr not
 
@@ -272,6 +247,8 @@ struct globalDataNode *createGlobalTree(struct globalDataNode *ptrG, struct univ
         причем нужно что-бы придыдущий узел указывал на только что вставленный и желательно если у предыдущего узла есть правая ветвь, указатель на 
         нее нужно переприсвоить новоприбывшему узлу, и соответсвенно указатель на всю левую часть на которую указывал старый такой-же узел нужно присвоить в новый узел.
         */
+
+       // left node must be smaller and right node must be equal or hugher, i gave a bug here
         if(NULL != ptrG->leftnode)
         {
            struct globalDataNode *tempRight = (NULL != ptrG->rightnode) ? (ptrG->rightnode) : NULL;
@@ -326,16 +303,15 @@ void writeGlobStructToFile(struct globalDataNode *structPtr, FILE * filePtr) /* 
     }
 }
 
-void globTreeprint(struct globalDataNode *globrootP, unsigned int taskNumber)
+static unsigned long long task_number;
+void globTreeprint(struct globalDataNode *globrootP) // not our tree is not balanced at all
 {
-    if(globrootP != NULL)
+    //static unsigned long long task_number  = 1;
+    if(globrootP != NULL) // own address, not address of the left or right nodes
     {
-        //unsigned short flagCaret = 0;
-        globTreeprint(globrootP->leftnode, taskNumber);
-    
-        ++taskNumber;
-        printfirstFivecolumn(globrootP, taskNumber);
-        
+        globTreeprint(globrootP->leftnode); // null
+
+        printfirstFivecolumn(globrootP, task_number);
         unsigned int headerLen = strlen(globrootP->headerOfNode), descrpLen = strlen(globrootP->description);
         if(headerLen > 35 && descrpLen < 78) // if header length bigger then column size 
         {
@@ -355,8 +331,8 @@ void globTreeprint(struct globalDataNode *globrootP, unsigned int taskNumber)
         else {display_header_descrp(globrootP, headerLen, descrpLen);} // if enough place
         printf(C_MAGENTA "  |");
         for(int i = 0; i < 170; i++) {printf("-");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
-        globTreeprint(globrootP->rightnode, taskNumber);
-        ++taskNumber;
+        ++task_number;
+        globTreeprint(globrootP->rightnode);
     }
 }
 
@@ -364,15 +340,14 @@ void globTreeprint(struct globalDataNode *globrootP, unsigned int taskNumber)
 /* functions that works with flags from command line, print already allocated data! */
 void displayAllGlobData(struct globalDataNode *globP)
 {
-    system("clear");
-    unsigned int taskNumber = 0; /* tasks counter */
     int flag = 0;
+    system("clear");
     printf(C_CYAN "\t\t\t\t\t\t\t\t\t\tGLOBAL TASKS\n"); printf(C_MAGENTA "   __");
 	for(int i = 0; i < 56; i++) {printf(C_MAGENTA " __");}; printf("\n");
 	for(int i = 0; i <= 2; i++)
 	{
-        if(i < 2) {printtopOfTable(flag, i);}
-        else if(i == 2) {globTreeprint(globP, taskNumber);} /* this logic must be stored in separate functions */
+        if(i < 2) {printtopOfTable(flag, i);} // some problems, not correct print of the last column sometimes
+        else if(i == 2) {task_number = 1; globTreeprint(globP); task_number = 1;} /* this logic must be stored in separate functions */
 	}
     printbottomOfTable();
 }
@@ -386,22 +361,22 @@ struct globalDataNode *addGlobData(struct globalDataNode *globPtr, char *header)
     while(addmoreData != 'n')
     {
         int sdateLen, fdateLen, descrpLen, headerLen;
-        char startDate[11], finishDate[11], header_[250], description[10000];
+        char startDate[DATE_LEN], finishDate[DATE_LEN], header_[HEADER_DESCRP_LEN], description[HEADER_DESCRP_LEN];
         printf(C_GREEN "start date: " RESET_TO_DEF);
-        sdateLen = mygetLine(startDate, 11);
+        sdateLen = mygetLine(startDate, DATE_LEN);
         *(startDate + sdateLen - 1) = '\0'; // replace '\n' with '\0'
 
         printf(C_GREEN "finish date: " RESET_TO_DEF);
-        fdateLen = mygetLine(finishDate, 11);
+        fdateLen = mygetLine(finishDate, DATE_LEN);
         *(finishDate + fdateLen - 1) = '\0';
 
         printf(C_GREEN "description: " RESET_TO_DEF);
-        descrpLen = mygetLine(description, 10000);
+        descrpLen = mygetLine(description, HEADER_DESCRP_LEN);
         *(description + descrpLen - 1) = '\0';
         if(addHeaderflag > 0)
         {
             printf(C_GREEN "header: " RESET_TO_DEF);
-            headerLen = mygetLine(header_, 250);
+            headerLen = mygetLine(header_, HEADER_DESCRP_LEN);
             *(header_ + headerLen - 1) = '\0';
         }
 
@@ -411,15 +386,16 @@ struct globalDataNode *addGlobData(struct globalDataNode *globPtr, char *header)
         globPtr = createGlobalTree(globPtr, &sdateP, &fdateP, description, (addHeaderflag  == 0) ? header : header_, DEF_STATUS);
         printf(C_RED_SLIM "Add more data?" RESET_TO_DEF); // there after input we have two symbols 'y' and '\n'
         scanf("%c", &addmoreData);
-        scanf("%c", &garbich); // we need it, because or next getchar() will read '\n' symbol and jump return
+        scanf("%c", &garbich); // we need it, because our next getchar() in mygetline() func will read '\n' symbol and jump return
         ++addHeaderflag;
     }
     system("clear");
-    displayAllGlobData(globPtr);
+    //displayAllGlobData(globPtr);
     return globPtr;
 }
 
-void dateParser(struct universalDate *dateP, char strdate[], int dateLen) // string date convert to a real int date maybe strdate[] we can changge on char * strdate
+/* string date convert to a real int date maybe strdate[] we can changge on char * strdate */
+void dateParser(struct universalDate *dateP, char strdate[], int dateLen) 
 {
     int countDots = 0, index = 0;
     char tempDate[5];
@@ -444,7 +420,8 @@ void dateParser(struct universalDate *dateP, char strdate[], int dateLen) // str
     }
 }
 
-unsigned short myatoi(char date[]) /* convert day, month, tear into number */
+/* convert day, month, year into numbers */
+unsigned short myatoi(char date[]) 
 {
     int i;
     unsigned short n;
@@ -482,7 +459,7 @@ struct globalDataNode *findstatusinTree(struct globalDataNode *globrootP, struct
     {
         findstatusinTree(globrootP->rightnode, dateP);
     }
-    else /* found match */
+    else // found match 
     {
         char status[12];
         printf(C_GREEN "status: " RESET_TO_DEF);
@@ -497,7 +474,7 @@ struct globalDataNode *showGlobDataBy(struct globalDataNode *globPtr, char *date
 {
     struct universalDate tempdate;
     struct globalDataNode *tempP;
-    dateParser(&tempdate, dateToShow, 11);
+    dateParser(&tempdate, dateToShow, DATE_LEN);
     tempP = finddateinTree(globPtr, &tempdate);
     if(NULL == tempP)
     {
@@ -529,25 +506,25 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
                 {
                     printWholeHeader(globrootP, headerLen, descrpLen);
                 }
-                else if(headerLen < 36 && descrpLen > 77) /* to realize in separate func */
+                else if(headerLen < 36 && descrpLen > 77)
                 {
                     int i;
                     for(i = 0; i < (int)headerLen; i++) {printf("%c", globrootP->headerOfNode[i]);}
                     for(; i < 35; i++) {printf(" ");}; printf(C_MAGENTA "|" RESET_TO_DEF);
                     printWholeDescription(globrootP, descrpLen);
                 }
-                else if(headerLen > 35 && descrpLen > 77) /* to realize in separate func */
+                else if(headerLen > 35 && descrpLen > 77)
                 {
                     display_owersize_header_descrp(globrootP, headerLen, descrpLen);
                 }
-                else {display_header_descrp(globrootP, headerLen, descrpLen);} /* if enough place for both (header and description) */
+                else {display_header_descrp(globrootP, headerLen, descrpLen);} // if enough place for both (header and description)
             }
         }printbottomOfTable();
         return globrootP;
     }
 }
 
-/* recursive function to properlt print header if not enough space in column 
+/* recursive function to properly print header if not enough space in column 
 this func helps me to know how much words can be stored in one line */
 void printWholeHeader(struct globalDataNode *globP, unsigned int h_len, unsigned int d_len) 
 {
@@ -702,8 +679,8 @@ void display_owersize_header_descrp(struct globalDataNode *globP, unsigned int h
     while(1)
     {
         // returning value zero means that whole data was printed.
-        if(temp_h_len) {temp_h_len = display_owersize_header(globP, h_len, &h_i); ++h_flag;} //printf("temp_h_len (%d)", temp_h_len);} 
-        if(temp_d_len) {temp_d_len = display_owersize_descrp(globP, d_len, &d_i); ++d_flag;} //printf("temp_d_len (%d)", temp_d_len);}
+        if(temp_h_len) {temp_h_len = display_owersize_header(globP, h_len, &h_i); ++h_flag;} 
+        if(temp_d_len) {temp_d_len = display_owersize_descrp(globP, d_len, &d_i); ++d_flag;} 
 
         /* we must check which data was totaly printed first, 
         if descsription - means that header data has more lines and we must print empty description column,
@@ -732,7 +709,8 @@ int display_owersize_header(struct globalDataNode *globP, unsigned int h_len, in
 
     for(; *h_i < h_len; ++(*h_i))
     {
-        if(*h_i == h_len - 1 && nSymbolsinLine < 36) /* means that now we will print the last symbol, but if not enough place */
+        /* means that now we will print the last symbol, but if not enough place */
+        if(*h_i == h_len - 1 && nSymbolsinLine < 36) 
         {
            ++nSymbolsinLine;
            printf("%c", globP->headerOfNode[*h_i]);
@@ -744,18 +722,14 @@ int display_owersize_header(struct globalDataNode *globP, unsigned int h_len, in
         {
             int k = *h_i;
             printHeader(globP, h_len, &nSymbolsinLine, h_i, &k); /* k = i in first call */
-            //printf("i (%c)", globP->description[*h_i]);
             for(int j = 0; j < (35 - nSymbolsinLine); j++) {printf(" ");}; printf(C_MAGENTA "|" RESET_TO_DEF);
             nSymbolsinLine = 0;
             return (*h_i == h_len) ? 0 : 1;
         }
+        if(0 == nSymbolsinLine && globP->headerOfNode[*h_i] == ' ' && *h_i != 0) continue;
         printf("%c", globP->headerOfNode[*h_i]);
         ++nSymbolsinLine;
     }
-    // printf("(%d)", *h_i);
-    // printf("s(%d)", nSymbolsinLine);
-    // printf("(%c)", globP->headerOfNode[*h_i]);
-    // printf("BOOM");
     return 0;
 }
 
@@ -765,7 +739,8 @@ int display_owersize_descrp(struct globalDataNode *globP, unsigned int d_len, in
 
     for(; *d_i < d_len; ++(*d_i))
     {
-        if(*d_i == d_len - 1 && nSymbolsinLine < 78) /* means that now we will print the last symbol, but if not enough place */
+        /* means that now we will print the last symbol, but if not enough place */
+        if(*d_i == d_len - 1 && nSymbolsinLine < 78) 
         {
            ++nSymbolsinLine;
            printf("%c", globP->description[*d_i]);
@@ -777,11 +752,11 @@ int display_owersize_descrp(struct globalDataNode *globP, unsigned int d_len, in
         {
             int k = *d_i;
             printDescription(globP, d_len, &nSymbolsinLine, d_i, &k);
-            //printf("i (%c)", globP->description[*d_i]);
             for(int j = 0; j < (77 - nSymbolsinLine); j++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
             nSymbolsinLine = 0;
             return (*d_i == d_len - 1) ? 0 : 1;
         }
+        if(0 == nSymbolsinLine && globP->description[*d_i] == ' ' && *d_i != 0) continue;
         printf("%c", globP->description[*d_i]);
         ++nSymbolsinLine;
     }
@@ -789,10 +764,10 @@ int display_owersize_descrp(struct globalDataNode *globP, unsigned int d_len, in
 }
 
 
-void printfirstFivecolumn(struct globalDataNode *globP, unsigned int taskNum)
+void printfirstFivecolumn(struct globalDataNode *globP, unsigned int task_number)
 {
     printf(C_MAGENTA "  |");
-    printf(C_CYAN "%5d" RESET_TO_DEF, taskNum);
+    printf(C_CYAN "%5d" RESET_TO_DEF, task_number);
     printf(C_MAGENTA "|" RESET_TO_DEF);
 
     (globP->beginDate->day > 9) ? printf("  %d.", globP->beginDate->day) : printf("  0%d.",globP->beginDate->day);
@@ -859,9 +834,12 @@ void display_header_descrp(struct globalDataNode *globP, unsigned int headerLen,
 }
 
 /* i don't know now how to do it */
-struct globalDataNode *deleteGlobDataBy(struct globalDataNode *globPtr, char *dateToDelete)
+struct globalDataNode *deleteGlobDataBy(struct globalDataNode *globPtr, char *str_date)
 {
-    return;
+    struct universalDate date_to_del;
+    dateParser(&date_to_del, str_date, DATE_LEN);
+
+    
 }
 
 
@@ -1002,4 +980,29 @@ struct tasksOnDay *daymainArgParser(struct tasksOnDay *daytasksP, FILE *dayFP, i
 struct globalDataNode *makeTreeBalanced(struct globalDataNode *globP) // to make tree balanced 
 {
     ;
+}
+
+void showAllDocumentation(void)
+{
+    ;
+    /*
+    Read file that contains all documentation and display all text on the screen
+    all available flags, all combinations of them, and what this programm can do.
+    All documentation is located in one .txt file called 'appDoc'.
+    */
+}
+
+/* we must debug this func because now it's not very clean */
+void delete_whole_tree(struct globalDataNode *rootP)
+{
+    if(NULL ==rootP) return;
+    delete_whole_tree(rootP->leftnode);
+    delete_whole_tree(rootP->rightnode);
+    free(rootP);
+    free(rootP->headerOfNode);
+    free(rootP->amountDays);
+    free(rootP->statusOfTask);
+    free(rootP->description);
+    free(rootP->beginDate);
+    free(rootP->finishDate);
 }
