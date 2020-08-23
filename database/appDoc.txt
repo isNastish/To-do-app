@@ -43,6 +43,14 @@ In future it will be ported to windows.
 -l -c or -gc   (status)                                           change status of the of the task/you receive a special menu where you must
                                                             write time to know which task status you want to change.
 
+-g -bd  or -gbd  (date)                                               change begin date in global data!
+
+-g -fd or -gfd (date)                                                   change finish date 
+
+-g -h or -gh (date)                                                 change header
+
+-g -ds -gds                                                         change description
+
 ##############################################################################################
                                         That's it for now.
 

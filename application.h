@@ -36,7 +36,8 @@ For detail info see here. https://en.wikipedia.org/wiki/ANSI_escape_code
 
 #define APP__VERSION "1.0.1"
 #define PATH_SIZE 60 // size of array that contains path
-#define FLAGSARRAY_LEN (sizeof flagsArrayDay / sizeof(struct daycmdFuncsWithTwoArgs))
+#define DAY_FLAGSARRAY_LEN (sizeof flagsArrayDay / sizeof(struct daycmdFuncsWithTwoArgs))
+#define GLOB_FLAGSARRAY_LEN (sizeof flagsArrayGlob / sizeof(struct globalcmdFuncsWithTwoArgs))
 #define DEF_STATUS "in progress"
 #define MAXLINES 4 // executable file name, flag, another flag, date or header.
 #define BUFSIZE 100
@@ -129,6 +130,10 @@ struct globalDataNode *changeGlobHeader(struct globalDataNode *, char *);
 struct globalDataNode *changeGlobDescription(struct globalDataNode *, char *);
 struct globalDataNode *showGlobDataBy(struct globalDataNode *, char *);
 struct globalDataNode *deleteGlobDataBy(struct globalDataNode *, char *); // нужно сделать одну функцию для обеих структур
+struct globalDataNode *change_begin_date(struct globalDataNode *, char *);
+struct globalDataNode *change_finish_date(struct globalDataNode *, char *);
+struct globalDataNode *change_header(struct globalDataNode *, char *);
+struct globalDataNode *change_description(struct globalDataNode *, char *);
 
 struct tasksOnDay *showDayDataBy(struct tasksOnDay *, char *);
 struct tasksOnDay *changeDayStatus(struct tasksOnDay *, char *);
@@ -149,10 +154,18 @@ struct globalcmdFuncsWithTwoArgs
     /*-g*/"-d", deleteGlobDataBy,
     /*-g*/"-a", addGlobData,
     /*-g*/"-c", changeGlobStatus,
+    /*-g*/"-bd", change_begin_date,
+    /*-g*/"-fd", change_finish_date,
+    /*-g*/"-h", change_header,
+    /*-g*/"-ds", change_description,
     "-ga", addGlobData,
     "-gd", deleteGlobDataBy,
     "-gc", changeGlobStatus,
     "-gsh", showGlobDataBy,
+    "-gbd", change_begin_date,
+    "-gfd", change_finish_date,
+    "-gh", change_header,
+    "-gds", change_description,
 };
 
 struct daycmdFuncsWithTwoArgs
@@ -294,4 +307,11 @@ void delete_whole_tree(struct globalDataNode *rootP); // distruct whole tree
         100 символов по моему, нужно зделать так что-бы можно было вводить сколько угодно!
 
 12   - rewrite all function names, etc using underscore
+
+
+13   - fix в функции которая выводит на экран заголовок и описание иногда бывает
+        что в конце строки не выводиться точка, запятая или дефиз!
+
+
+14   - make function that only print all "in progress" data or only "done" data and "denied" data.
 */

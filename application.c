@@ -54,10 +54,10 @@ int main(int argc, const char *argv[])
     }
     writeGlobStructToFile(globRootP, globFP);
     //writeDayStructToFile(dayRootPtr, dayfileP);
-    fclose(dayFP);
+    //fclose(dayFP);
     fclose(globFP);
-
-    delete_whole_tree(globRootP);
+    //delete_whole_tree(globRootP); // big problem here, don't work at all
+    //printf("free memory: success!\n");
     /*
     free all allocated memory, don't forget Alex! 
     free(inArgsPtr);
@@ -222,11 +222,12 @@ int dayOfyear(int year, int month, int day)
 struct globalDataNode *createGlobalTree(struct globalDataNode *ptrG, struct universalDate *beginDateptr, struct universalDate *finishDateptr, \
     char *descrp, char *header, char *status) // status (in progress)as a default
 {
-    //printf("%s\n", descrp);
-    //printf("%s\n", header);
-    //printf("%s\n", status);
-    //printf("start date : %d %d %d\n", beginDateptr->day, beginDateptr->month, beginDateptr->year);
-    //printf("finish : %d %d %d\n", finishDateptr->day, finishDateptr->month, finishDateptr->year);
+    // printf("%p\n", ptrG);
+    // printf("%s\n", descrp);
+    // printf("%s\n", header);
+    // printf("%s\n", status);
+    // printf("start date : %d %d %d\n", beginDateptr->day, beginDateptr->month, beginDateptr->year);
+    // printf("finish : %d %d %d\n", finishDateptr->day, finishDateptr->month, finishDateptr->year);
 
     int resultOfcompare;
 
@@ -270,36 +271,78 @@ struct globalDataNode *createGlobalTree(struct globalDataNode *ptrG, struct univ
     
 }
 
-/* writing whole binary tree to file and reading from here */
-struct globalDataNode *readGlobStructFromFile(struct globalDataNode *globP, FILE * filePtr)
+/* There is a big problem, is that when we inside programm we can write poiners and then read them, because 
+this pointers consists of references on allocated block of memory with our word, but we can't read written in such way file
+outside the programm, because references will not be exist, so we must write to file real values not pointers on
+allocated memory with our words, and then we can easily read them, anyway we receive 'Segmentation fault' error.
+So we must write all pieces of struct separately but before each one, write their lenght to file to, in order to read now 
+length of word and allocated proper block of memory before reading word  */
+struct globalDataNode *readGlobStructFromFile(struct globalDataNode *globP, FILE * fileP)
 {
-    int n_read, localFlag = 0;
-    struct globalDataNode tempP;
-    while((n_read = fread(&tempP, sizeof(tempP), 1, filePtr)) != 0)
+    int stop_read_flag;
+    while(1)
     {
+        struct globalDataNode tempP;
+        size_t len_header;
+        size_t len_description;
+        size_t len_status;
+
+        stop_read_flag = fread(&len_header, sizeof(len_header), 1, fileP); if(!stop_read_flag) break;
+        tempP.headerOfNode = (char *)malloc(len_header);
+        fread(tempP.headerOfNode, 1, len_header, fileP);
+        fread(&len_description, sizeof(len_description), 1, fileP);
+        tempP.description = (char *)malloc(len_description);
+        fread(tempP.description, 1, len_description, fileP);
+        fread(&len_status, sizeof(len_status), 1, fileP);
+        tempP.statusOfTask = (char *)malloc(len_status);
+        fread(tempP.statusOfTask, 1, len_status, fileP);
+        fread(&tempP.amountDays, sizeof(int), 1, fileP);
+        tempP.beginDate = (struct universalDate *)malloc(sizeof(struct universalDate));
+        fread(&tempP.beginDate->day, sizeof(unsigned short), 1, fileP); 
+        fread(&tempP.beginDate->month, sizeof(unsigned short), 1, fileP);
+        fread(&tempP.beginDate->year, sizeof(unsigned short), 1, fileP);
+        tempP.finishDate = (struct universalDate *)malloc(sizeof(struct universalDate));
+        fread(&tempP.finishDate->day, sizeof(unsigned short), 1, fileP);
+        fread(&tempP.finishDate->month, sizeof(unsigned short), 1, fileP);
+        fread(&tempP.finishDate->year, sizeof(unsigned short), 1, fileP); 
         tempP.leftnode = tempP.rightnode = NULL;
-        if(!localFlag)
-        {
-            globP = createGlobalTree(NULL, tempP.beginDate, tempP.finishDate, tempP.description, tempP.headerOfNode, tempP.amountDays);
-            localFlag = 1;
-        }
-        else
-        {
-            globP = createGlobalTree(globP, tempP.beginDate, tempP.finishDate, tempP.description, tempP.headerOfNode, tempP.statusOfTask);
-        }
-        
+
+        globP = createGlobalTree(globP, tempP.beginDate, tempP.finishDate, tempP.description, tempP.headerOfNode, tempP.statusOfTask);
+        free(tempP.finishDate);
+        free(tempP.beginDate);
+        free(tempP.description);
+        free(tempP.statusOfTask);
+        free(tempP.headerOfNode);
     }
     return globP;
-} // done
+} 
 
 
-void writeGlobStructToFile(struct globalDataNode *structPtr, FILE * filePtr) /* receive pointer on root */
+void writeGlobStructToFile(struct globalDataNode *globP, FILE * fileP) /* receive pointer on root */
 {
-    if(structPtr != NULL)
+    if(globP != NULL)
     {
-        fwrite(structPtr, sizeof(*structPtr), 1, filePtr);
-        writeGlobStructToFile(structPtr->leftnode, filePtr);
-        writeGlobStructToFile(structPtr->rightnode, filePtr);
+        size_t len_header      = strlen(globP->headerOfNode) + 1;
+        size_t len_description = strlen(globP->description)  + 1;
+        size_t len_status      = strlen(globP->statusOfTask) + 1;
+
+        // writing separate data to file 
+        fwrite(&len_header, sizeof(len_header), 1, fileP);
+        fwrite(globP->headerOfNode, 1, len_header, fileP); // write each symbol, each byte.
+        fwrite(&len_description, sizeof(len_description), 1, fileP);
+        fwrite(globP->description, 1, len_description, fileP);
+        fwrite(&len_status, sizeof(len_status), 1, fileP);
+        fwrite(globP->statusOfTask, 1, len_status, fileP);
+        fwrite(&globP->amountDays, sizeof(int), 1, fileP);
+        fwrite(&globP->beginDate->day, sizeof(unsigned short), 1, fileP);
+        fwrite(&globP->beginDate->month, sizeof(unsigned short), 1, fileP);
+        fwrite(&globP->beginDate->year, sizeof(unsigned short), 1, fileP);
+        fwrite(&globP->finishDate->day, sizeof(unsigned short), 1, fileP);
+        fwrite(&globP->finishDate->month, sizeof(unsigned short), 1, fileP);
+        fwrite(&globP->finishDate->year, sizeof(unsigned short), 1, fileP);
+
+        writeGlobStructToFile(globP->leftnode, fileP);
+        writeGlobStructToFile(globP->rightnode, fileP);
     }
 }
 
@@ -696,8 +739,13 @@ void display_owersize_header_descrp(struct globalDataNode *globP, unsigned int h
         for(int j = 0; j < 56; ++j)
         {
             if(j == 1 || j == 6 || j == 11 || j == 13) printf("|  ");
-            else if(j == 18)    {printf("|" RESET_TO_DEF); break;}
-            else                printf("   ");
+            else if(j == 18)    
+            {
+                if((temp_h_len != 0 && temp_d_len == 0) || (temp_h_len == temp_d_len)) {printf("|" RESET_TO_DEF); break;}
+                else if(temp_h_len == 0 && temp_d_len != 0) {printf("|  "); continue;}
+            }
+            else if(j == 30) {printf("|" RESET_TO_DEF); break;}
+            else printf("   ");
         }
     }
 }
@@ -754,7 +802,7 @@ int display_owersize_descrp(struct globalDataNode *globP, unsigned int d_len, in
             printDescription(globP, d_len, &nSymbolsinLine, d_i, &k);
             for(int j = 0; j < (77 - nSymbolsinLine); j++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
             nSymbolsinLine = 0;
-            return (*d_i == d_len - 1) ? 0 : 1;
+            return (*d_i == d_len) ? 0 : 1;
         }
         if(0 == nSymbolsinLine && globP->description[*d_i] == ' ' && *d_i != 0) continue;
         printf("%c", globP->description[*d_i]);
@@ -802,7 +850,7 @@ void printtopOfTable(int flag, int i)
         else if(j == 35) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE " day "); j = 40;}}
         else if(j == 41) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "    status   ");j = 54;}}
         else if(j == 56) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t task name\t       "); j = 91;}} // 35 inclusively
-        else if(j == 92) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "\t\t\t\tdescription\t\t\t\t    "); j = 168;}} // 77 inclusively
+        else if(j == 92) {printf(C_MAGENTA "|"); if(i == 0) {printf(C_BLUE "                                description                                 "); j = 168;}} // 77 inclusively
         else             {printf(C_MAGENTA " ");}
     }
     printf(C_MAGENTA "|\n"); flag = 0;
@@ -840,6 +888,27 @@ struct globalDataNode *deleteGlobDataBy(struct globalDataNode *globPtr, char *st
     dateParser(&date_to_del, str_date, DATE_LEN);
 
     
+}
+
+// which date == 0 (begin date), 1(finish date)
+struct globalDataNode *change_begin_date(struct globalDataNode *globP, char *date_to_change) 
+{
+    ;
+}
+
+struct globalDataNode *change_finish_date(struct globalDataNode *globP, char *date_to_change)
+{
+    ;
+}
+
+struct globalDataNode *change_header(struct globalDataNode *globP, char *header_to_change)
+{
+    ;
+}
+
+struct globalDataNode *change_description(struct globalDataNode *globP, char *descrp_to_change)
+{
+    ;
 }
 
 
@@ -888,7 +957,7 @@ struct globalDataNode *globmainArgParser(struct globalDataNode *globRootP, FILE 
     {
         if(argc == 3)
         {
-            for(int i = 0; i < FLAGSARRAY_LEN; i++)
+            for(int i = 0; i < GLOB_FLAGSARRAY_LEN; i++)
             {
                 if(mystrcmp(argv[1], flagsArrayGlob[i].flag) == 0)
                 {
@@ -905,7 +974,7 @@ struct globalDataNode *globmainArgParser(struct globalDataNode *globRootP, FILE 
         }
         else if(argc == 4) // change
         {
-            for(int i = 0; i < FLAGSARRAY_LEN; i++)
+            for(int i = 0; i < GLOB_FLAGSARRAY_LEN; i++)
             {
                 if(mystrcmp(argv[1], "-g") == 0) /* -g */
                 {
@@ -939,7 +1008,7 @@ struct tasksOnDay *daymainArgParser(struct tasksOnDay *daytasksP, FILE *dayFP, i
     {
         if(argc == 3)
         {
-            for(int i = 0; i < FLAGSARRAY_LEN; i++)
+            for(int i = 0; i < DAY_FLAGSARRAY_LEN; i++)
             {
                 if((mystrcmp(argv[1], flagsArrayGlob[i].flag) == 0) || (mystrcmp(argv[1], flagsArrayDay[i].flag) == 0))
                 {
@@ -956,7 +1025,7 @@ struct tasksOnDay *daymainArgParser(struct tasksOnDay *daytasksP, FILE *dayFP, i
         }
         else if(argc == 4) // change
         {
-            for(int i = 0; i < FLAGSARRAY_LEN; i++)
+            for(int i = 0; i < DAY_FLAGSARRAY_LEN; i++)
             {
                 if(mystrcmp(argv[1], "-l") == 0) /* -l */
                 {
@@ -998,11 +1067,11 @@ void delete_whole_tree(struct globalDataNode *rootP)
     if(NULL ==rootP) return;
     delete_whole_tree(rootP->leftnode);
     delete_whole_tree(rootP->rightnode);
-    free(rootP);
     free(rootP->headerOfNode);
     free(rootP->amountDays);
     free(rootP->statusOfTask);
     free(rootP->description);
     free(rootP->beginDate);
     free(rootP->finishDate);
+    free(rootP);
 }
