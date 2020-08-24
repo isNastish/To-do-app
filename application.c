@@ -6,20 +6,15 @@ int main(int argc, const char *argv[])
     int firstArgLen, main_flag = 0; char *p;
 
     // first element is always name of executable file
-    if((p = (char *)malloc(firstArgLen = mystrlen(*argv) + 1)) != NULL) {strcpy(p, *argv); *(p + firstArgLen) = '\0'; inArgsPtr[0] = p;} 
+    if((p = (char *)malloc(firstArgLen = strlen(*argv) + 1)) != NULL) {strcpy(p, *argv); *(p + firstArgLen) = '\0'; inArgsPtr[0] = p;} 
     assert(p != NULL);
 
-    FILE* dayFP = createFile(dayFP, "dayData.bin");
-    FILE* globFP = createFile(globFP, "globData.bin");
-
-    struct tasksOnDay *dayRootP = NULL; // maybe it unnecessary */
     struct globalDataNode *globRootP = NULL; // poiner to array of such structs
 
-    // decide what type of data we will be operate on
+    // check argumnets from command line, and call proper func
     if(argc > 1)
     {
-        if(*(*(argv + 1) + 1) == 'g') {globRootP = globmainArgParser(globRootP, globFP, argc, argv, &main_flag);} // global data
-        else if(*(*(argv + 1) + 1) == 'l') {dayRootP = daymainArgParser(dayRootP, dayFP, argc, argv, &main_flag);} // local data
+        if(*(*(argv + 1) + 1) == 'g') {globRootP = globmainArgParser(globRootP, argc, argv, &main_flag);} // global data
         else if(mystrcmp(*(argv + 1), "--help") == 0) {showAllDocumentation();}
         else 
         {
@@ -29,14 +24,13 @@ int main(int argc, const char *argv[])
         }
     }
     else main_flag = 1;
-    while(main_flag)  /* main circle, runs when we inside programm */
+    while(main_flag) // main loop
     {
         printf(C_YELLOW "~:" RESET_TO_DEF); // user input. 
         int countArgs = insideProgArgParser(inArgsPtr);
         if(countArgs > 1)
         {
-            if(*(*(inArgsPtr + 1) + 1) == 'g') {globRootP = globmainArgParser(globRootP, globFP, countArgs, inArgsPtr, &main_flag);}
-            else if(*(*(inArgsPtr + 1) + 1) == 'l') {dayRootP = daymainArgParser(dayRootP, dayFP, countArgs, inArgsPtr, &main_flag);}
+            if(*(*(inArgsPtr + 1) + 1) == 'g') {globRootP = globmainArgParser(globRootP, countArgs, inArgsPtr, &main_flag);}
             else if(mystrcmp(*(inArgsPtr + 1), "--help") == 0) {showAllDocumentation();}
             else // undefined "command line" flag
             {
@@ -52,34 +46,10 @@ int main(int argc, const char *argv[])
             break;
         }
     }
-    writeGlobStructToFile(globRootP, globFP);
-    //writeDayStructToFile(dayRootPtr, dayfileP);
-    //fclose(dayFP);
-    fclose(globFP);
-    //delete_whole_tree(globRootP); // big problem here, don't work at all
-    //printf("free memory: success!\n");
-    /*
-    free all allocated memory, don't forget Alex! 
-    free(inArgsPtr);
-    */
+    writeGlobStructToFile(globRootP, globF);
+    fclose(globF);
+    free_whole_tree(globRootP);
     return 0;
-}
-
-FILE *createFile(FILE *fileP, char *fileName)
-{
-    char data_folder_path[60] = "/home/nastish/MyProjects/To-do-app/database/";
-    void strconcat(char *, const char *);
-    strconcat(data_folder_path, fileName);
-    fileP = fopen(data_folder_path, "ab+"); // open file for read and write, don't rewrite the file 
-    assert(fileP != NULL);
-    return fileP;
-}
-
-/* concatenation func */
-void strconcat(char *destination, const char *source)
-{
-    while(*destination) destination++;
-    while((*destination++ = *source++) != '\0');
 }
 
 /* allocation for structure of type struct globalDataNode */
@@ -89,15 +59,6 @@ struct globalDataNode *tallocGlobalTask(void)
     globptr = (struct globalDataNode *) malloc(sizeof(struct globalDataNode));
     assert(globptr != NULL);
     return globptr;
-}
-
-/* allocation for structure of type dayTasksNode */
-struct tasksOnDay *tallocDayTask(void)
-{
-    struct tasksOnDay *dayptr;
-    dayptr = (struct tasksOnDay *) malloc(sizeof(struct tasksOnDay));
-    assert(dayptr != NULL);
-    return dayptr;
 }
 
 /* allocate date */
@@ -132,7 +93,7 @@ int mygetLine(char *args, int lim)
 }
 
 /* DON'T FORGET TO FREE THE MEMORY ALLOCATED HERE */
-int insideProgArgParser(char *inArgsPtr[])
+int insideProgArgParser(const char *inArgsPtr[])
 {
     int i, lenLine, ptrCount = 1, argLen = 0;
     char *p, argsline[HEADER_DESCRP_LEN + 50], arg[HEADER_DESCRP_LEN];
@@ -254,24 +215,24 @@ struct globalDataNode *createGlobalTree(struct globalDataNode *ptrG, struct univ
         {
            struct globalDataNode *tempRight = (NULL != ptrG->rightnode) ? (ptrG->rightnode) : NULL;
            struct globalDataNode *tempLeft = ptrG->leftnode; // присваиваем времменно ссылку на узел левый узел который мы хотим подвинуть 
-           ptrG->leftnode = createGlobalTree(NULL, beginDateptr, finishDateptr, descrp, header, DEF_STATUS);
+           ptrG->leftnode = createGlobalTree(NULL, beginDateptr, finishDateptr, descrp, header, status);
            ptrG->leftnode->leftnode = tempLeft; // возможно привыходе адресс может потерятся, по этому нужно проверить эту функцию в будещем!
            ptrG->leftnode->rightnode = tempRight;
 
         }
         else // if that node doesn't have leftnode
-            ptrG->leftnode = createGlobalTree(ptrG->leftnode, beginDateptr, finishDateptr, descrp, header, DEF_STATUS);
+            ptrG->leftnode = createGlobalTree(ptrG->leftnode, beginDateptr, finishDateptr, descrp, header, status);
        
     }
     else if(resultOfcompare > 0) 
-        ptrG->leftnode = createGlobalTree(ptrG->leftnode, beginDateptr, finishDateptr, descrp, header, DEF_STATUS); // go to left node
+        ptrG->leftnode = createGlobalTree(ptrG->leftnode, beginDateptr, finishDateptr, descrp, header, status);
     else 
-        ptrG->rightnode = createGlobalTree(ptrG->rightnode, beginDateptr, finishDateptr, descrp, header, DEF_STATUS);
+        ptrG->rightnode = createGlobalTree(ptrG->rightnode, beginDateptr, finishDateptr, descrp, header, status);
     return ptrG; /* return pointer on root */
     
 }
 
-/* There is a big problem, is that when we inside programm we can write poiners and then read them, because 
+/* There is a big problem here, when we inside programm we can write pointers and then read them and display the value that they store, because 
 this pointers consists of references on allocated block of memory with our word, but we can't read written in such way file
 outside the programm, because references will not be exist, so we must write to file real values not pointers on
 allocated memory with our words, and then we can easily read them, anyway we receive 'Segmentation fault' error.
@@ -317,16 +278,14 @@ struct globalDataNode *readGlobStructFromFile(struct globalDataNode *globP, FILE
     return globP;
 } 
 
-
-void writeGlobStructToFile(struct globalDataNode *globP, FILE * fileP) /* receive pointer on root */
+void writeGlobStructToFile(struct globalDataNode *globP, FILE * fileP)
 {
     if(globP != NULL)
     {
         size_t len_header      = strlen(globP->headerOfNode) + 1;
         size_t len_description = strlen(globP->description)  + 1;
         size_t len_status      = strlen(globP->statusOfTask) + 1;
-
-        // writing separate data to file 
+ 
         fwrite(&len_header, sizeof(len_header), 1, fileP);
         fwrite(globP->headerOfNode, 1, len_header, fileP); // write each symbol, each byte.
         fwrite(&len_description, sizeof(len_description), 1, fileP);
@@ -349,17 +308,16 @@ void writeGlobStructToFile(struct globalDataNode *globP, FILE * fileP) /* receiv
 static unsigned long long task_number;
 void globTreeprint(struct globalDataNode *globrootP)
 {
-    if(globrootP != NULL) // own address, not address of the left or right nodes
+    if(globrootP != NULL)
     {
-        globTreeprint(globrootP->leftnode); // null
-
+        globTreeprint(globrootP->leftnode);
         printfirstFivecolumn(globrootP, task_number);
         unsigned int headerLen = strlen(globrootP->headerOfNode), descrpLen = strlen(globrootP->description);
         if(headerLen > 35 && descrpLen < 78) // if header length bigger then column size 
         {
             printWholeHeader(globrootP,headerLen, descrpLen);
         }
-        else if(headerLen < 36 && descrpLen > 77) // if descrp len bigger then column size
+        else if(headerLen < 36 && descrpLen > 77) // if descrp length bigger then column size
         {
             int i;
             for(i = 0; i < (int)headerLen; i++) {printf("%c", globrootP->headerOfNode[i]);}
@@ -370,14 +328,13 @@ void globTreeprint(struct globalDataNode *globrootP)
         {
             display_owersize_header_descrp(globrootP, headerLen, descrpLen);
         }
-        else {display_header_descrp(globrootP, headerLen, descrpLen);} // if enough place
+        else {display_header_descrp(globrootP, headerLen, descrpLen);} // if enough place fror both
         printf(C_MAGENTA "  |");
         for(int i = 0; i < 170; i++) {printf("-");}; printf(C_MAGENTA "|\n" RESET_TO_DEF);
         ++task_number;
         globTreeprint(globrootP->rightnode);
     }
 }
-
 
 /* functions that works with flags from command line, print already allocated data! */
 void displayAllGlobData(struct globalDataNode *globP)
@@ -388,13 +345,13 @@ void displayAllGlobData(struct globalDataNode *globP)
 	for(int i = 0; i < 56; i++) {printf(C_MAGENTA " __");}; printf("\n");
 	for(int i = 0; i <= 2; i++)
 	{
-        if(i < 2) {printtopOfTable(flag, i);} // some problems, not correct print of the last column sometimes
-        else if(i == 2) {task_number = 1; globTreeprint(globP); task_number = 1;} /* this logic must be stored in separate functions */
+        if(i < 2) {printtopOfTable(flag, i);}
+        else if(i == 2) {task_number = 1; globTreeprint(globP); task_number = 1;}
 	}
     printbottomOfTable();
 }
 
-struct globalDataNode *addGlobData(struct globalDataNode *globPtr, char *header)
+struct globalDataNode *add_glob_data(struct globalDataNode *globPtr, char *header)
 {
     struct universalDate sdateP;
     struct universalDate fdateP;
@@ -432,24 +389,24 @@ struct globalDataNode *addGlobData(struct globalDataNode *globPtr, char *header)
         ++addHeaderflag;
     }
     system("clear");
-    //displayAllGlobData(globPtr);
     return globPtr;
 }
 
-/* string date convert to a real int date maybe strdate[] we can changge on char * strdate */
-void dateParser(struct universalDate *dateP, char str_date[], int date_len) 
+void dateParser(struct universalDate *dateP, char *str_date, int date_len) 
 {
-    int countDots = 0, index = 0;
-    char tempDate[5];
+    int count_dots = 0, index = 0;
+    char tempDate[5]; //, *p = str_date;
+    //date_len = strlen(p);
+    //*(str_date + date_len) = '\0';
 
     for(int i = 0; i < date_len; i++) 
     {
         if(*(str_date + i) != '.') {tempDate[index] = *(str_date + i); ++index;}
         else
         {
-            ++countDots;
-            if(countDots == 1) {tempDate[index] = '\0'; dateP->day = myatoi(tempDate); index = 0; continue;}
-            if(countDots == 2) 
+            ++count_dots;
+            if(count_dots == 1) {tempDate[index] = '\0'; dateP->day = myatoi(tempDate); index = 0; continue;}
+            if(count_dots == 2) 
             {
                 tempDate[index] = '\0';
                 dateP->month = myatoi(tempDate), index = 0;
@@ -465,74 +422,182 @@ void dateParser(struct universalDate *dateP, char str_date[], int date_len)
 /* convert day, month, year into numbers */
 unsigned short myatoi(char date[]) 
 {
-    int i;
-    unsigned short n;
-
+    int i; unsigned short n;
     if(date[0] == '0') {i = 1;}
     else {i = 0;}
-    for(i; isspace(date[i]); i++);
+    for(i; isspace(date[i]); i++); 
     for(n = 0; isdigit(date[i]); i++) {n = 10 * n + (date[i] - '0');}
     return n;
 }
 
-struct globalDataNode *changeGlobStatus(struct globalDataNode *globPtr, char *date_to_change) // receive begin date
+// common finding proper date function for all changes, sign - number(decide what to change, description, header etc.)
+void error_date_print(struct universalDate dateP)
 {
-    struct universalDate convertDate;
-    struct globalDataNode *reftoNode;
-    char *dateP = date_to_change;
-    int date_len = strlen(dateP);
-    //printf("(%c)", *(date_to_change + date_len - 1));
-    //printf("(%c)", *(date_to_change + date_len));
-    
-    *(date_to_change + date_len) = '\0';
-    dateParser(&convertDate, date_to_change, date_len);
-    reftoNode = findstatusinTree(globPtr, &convertDate);
-    if(NULL == reftoNode)
-    {
-        printf(C_RED "date (%d %d %d) wasn't found.\n" RESET_TO_DEF, convertDate.day, convertDate.month, convertDate.year);
-    }
-    showGlobDataBy(globPtr, date_to_change);
-    return globPtr;
+    printf(C_RED "error: date " RESET_TO_DEF);
+    (dateP.day > 9) ? printf("  %d.", dateP.day) : printf("  0%d.", dateP.day);
+    (dateP.month > 9) ? printf("%d.", dateP.month) : printf("0%d.", dateP.month);
+    printf("%d  wasn't found!\n", dateP.year);
 }
 
-struct globalDataNode *findstatusinTree(struct globalDataNode *globrootP, struct universalDate *dateP)
+struct globalDataNode *show_glob_data_by(struct globalDataNode *globP, char *date_to_show)
+{
+    struct universalDate temp_date;
+    struct globalDataNode *tempP;
+    dateParser(&temp_date, date_to_show, date_manipulation(date_to_show));
+    tempP = finddateinTree(globP, &temp_date);
+    if(NULL == tempP) {error_date_print(temp_date); return globP;}
+    return globP;
+}
+
+struct globalDataNode *find_date(struct globalDataNode *globrootP, struct universalDate *dateP, unsigned short sign)
 {
     int resultdate;
     if(NULL == globrootP) {return NULL;}
-    else if((resultdate = compareDates(globrootP->beginDate, dateP)) > 0)
+    else if((resultdate = compareDates(globrootP->beginDate, dateP)) > 0) {find_date(globrootP->leftnode, dateP, sign);}
+    else if(resultdate < 0) {find_date(globrootP->rightnode, dateP, sign);}
+    else // matching 
     {
-        findstatusinTree(globrootP->leftnode, dateP);
-    }
-    else if(resultdate < 0)
-    {
-        findstatusinTree(globrootP->rightnode, dateP);
-    }
-    else // found match 
-    {
-        char status[12];
-        printf(C_GREEN "status: " RESET_TO_DEF);
-        int status_len = mygetLine(status, 12);
-        *(status + status_len - 1) = '\0';
-        strcpy(globrootP->statusOfTask, status);
-        return globrootP; 
+        switch(sign)
+        {
+            case 1: // change statusOfTask
+            input_status(globrootP);
+            return globrootP; 
+            case 2: // change headerOfNode
+            input_header(globrootP);
+            return globrootP;
+            case 3: // change description
+            input_description(globrootP);
+            return globrootP;
+
+            /*
+            case 4: // change beginDate
+            input_date_begin(globrootP); 
+            return globrootP;
+            case 5: // change finishDate
+            input_date_finish(globrootP);
+            return globrootP;
+            */
+        }
     }
 }
 
-struct globalDataNode *showGlobDataBy(struct globalDataNode *globPtr, char *date_to_show)
+int date_manipulation(char *searching_date)
 {
-    struct universalDate tempdate;
-    struct globalDataNode *tempP;
-    char *dateP = date_to_show;
-    int date_len = strlen(dateP);
-    *(date_to_show + date_len) = '\0';
-    dateParser(&tempdate, date_to_show, date_len);
-    tempP = finddateinTree(globPtr, &tempdate);
-    if(NULL == tempP)
-    {
-        printf(C_RED "date (%d %d %d) wasn't found.\n" RESET_TO_DEF, tempdate.day, tempdate.month, tempdate.year);// not enough
-    }
-    return globPtr;
+    char *p = searching_date;
+    int date_len = strlen(p);
+    *(searching_date + date_len) = '\0';
+    return date_len;
 }
+
+/* set of functions to change global data statusOfTask
+################################################################################################################*/ 
+struct globalDataNode *change_glob_status(struct globalDataNode *globP, char *searching_date) // receive begin date
+{
+    struct universalDate key_date;
+    struct globalDataNode *ref_to_node;
+    dateParser(&key_date, searching_date, date_manipulation(searching_date));
+    ref_to_node = find_date(globP, &key_date, 1);
+    if(NULL == ref_to_node) {error_date_print(key_date); return globP;}
+    show_glob_data_by(globP, searching_date);
+    return globP;
+}
+
+void input_status(struct globalDataNode *globP)
+{
+    char status[12];
+    printf(C_GREEN "status: " RESET_TO_DEF);
+    int status_len = mygetLine(status, 12);
+    *(status + status_len - 1) = '\0';
+    strcpy(globP->statusOfTask, status); 
+}
+
+/*set of functions to change global data headerOfNode
+################################################################################################################*/
+struct globalDataNode *change_glob_header(struct globalDataNode *globP, char *searching_date)
+{
+    struct universalDate key_date;
+    struct globalDataNode *ref_to_node;
+    dateParser(&key_date, searching_date, date_manipulation(searching_date));
+    ref_to_node = find_date(globP, &key_date, 2);
+    if(NULL == ref_to_node) {error_date_print(key_date); return globP;}
+    show_glob_data_by(globP, searching_date);
+    return globP;
+}
+
+void input_header(struct globalDataNode *globP)
+{
+    char header[HEADER_DESCRP_LEN];
+    printf(C_GREEN "header : " RESET_TO_DEF);
+    int header_len = mygetLine(header, HEADER_DESCRP_LEN);
+    *(header + header_len - 1) = '\0';
+    strcpy(globP->headerOfNode, header); 
+}
+
+/*set of functions to change global data description
+################################################################################################################*/
+struct globalDataNode *change_glob_description(struct globalDataNode *globP, char *searching_date)
+{
+    struct universalDate key_date;
+    struct globalDataNode *ref_to_node;
+    dateParser(&key_date, searching_date, date_manipulation(searching_date));
+    ref_to_node = find_date(globP, &key_date, 3);
+    if(NULL == ref_to_node) {error_date_print(key_date); return globP;}
+    show_glob_data_by(globP, searching_date);
+    return globP;
+}
+
+void input_description(struct globalDataNode *globP)
+{
+    char description[HEADER_DESCRP_LEN];
+    printf(C_GREEN "dascription : " RESET_TO_DEF);
+    int description_len = mygetLine(description, HEADER_DESCRP_LEN);
+    *(description + description_len - 1) = '\0';
+    strcpy(globP->description, description); 
+}
+
+/*set of functions to change global data description
+###############################################################################################################*/
+struct globalDataNode *change_begin_date(struct globalDataNode *globP, char *searching_date)
+{
+    ;
+}
+
+void input_date_begin(struct globalDataNode *globP)
+{
+    char begin_date[DATE_LEN];
+    printf(C_GREEN "start date : " RESET_TO_DEF);
+    int date_len = mygetLine(begin_date, DATE_LEN);
+    *(begin_date + date_len - 1) = '\0';
+
+    struct universalDate temp;
+    dateParser(&temp, begin_date, date_len);
+    globP->beginDate->day = temp.day;
+    globP->beginDate->month = temp.month;
+    globP->beginDate->year = temp.year;
+
+}
+
+/*set of functions to change global data description
+################################################################################################################*/
+struct globalDataNode *change_finish_date(struct globalDataNode *globP, char *searching_date)
+{
+    ;
+}
+
+void input_date_finish(struct globalDataNode *globP)
+{
+    char finish_date[DATE_LEN];
+    printf(C_GREEN "finish date : " RESET_TO_DEF);
+    int date_len = mygetLine(finish_date, DATE_LEN);
+    *(finish_date + date_len - 1) = '\0';
+
+    struct universalDate temp;
+    dateParser(&temp, finish_date, date_len); 
+    globP->beginDate->day = temp.day;
+    globP->beginDate->month = temp.month;
+    globP->beginDate->year = temp.year;
+}
+/*#############################################################################################################*/
 
 struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct universalDate *dateP)
 {
@@ -890,173 +955,10 @@ void display_header_descrp(struct globalDataNode *globP, unsigned int headerLen,
 
 /* function that delete one node from tree, it's complicated func because we need rebuild 
 all tree to save tree properties */
-struct globalDataNode *deleteGlobDataBy(struct globalDataNode *globPtr, char *str_date)
+struct globalDataNode *delete_glob_data_by(struct globalDataNode *globPtr, char *str_date)
 {
     struct universalDate date_to_del;
     //dateParser(&date_to_del, str_date, date_len);
-}
-
-// which date == 0 (begin date), 1(finish date)
-struct globalDataNode *change_begin_date(struct globalDataNode *globP, char *date_to_change) 
-{
-    ;
-}
-
-struct globalDataNode *change_finish_date(struct globalDataNode *globP, char *date_to_change)
-{
-    ;
-}
-
-struct globalDataNode *change_header(struct globalDataNode *globP, char *header_to_change)
-{
-    ;
-}
-
-struct globalDataNode *change_description(struct globalDataNode *globP, char *descrp_to_change)
-{
-    ;
-}
-
-
-struct tasksOnDay *readDayStructFromFile(FILE *filePtr)
-{
-    return ;
-}
-
-void displayAllDayData(struct tasksOnDay *dayTasksP)
-{
-    return;
-}
-
-struct tasksOnDay *addDayData(struct tasksOnDay *daydataPtr, char *header)
-{
-    return;
-}
-
-struct tasksOnDay *changeDayStatus(struct tasksOnDay *daydataPtr, char *dateToChange)
-{
-    /*......................*/
-    showDayDataBy(daydataPtr, dateToChange);
-    return;
-}
-
-struct tasksOnDay *showDayDataBy(struct tasksOnDay *daydataPtr, char *dateToShow)
-{
-    return;
-}
-
-struct tasksOnDay *deleteDayDataBy(struct tasksOnDay *daydataPtr, char *dateTodDelete)
-{
-    return;
-}
-
-struct globalDataNode *globmainArgParser(struct globalDataNode *globRootP, FILE *globFP, int argc, const char *argv[], int *mainflag)
-{
-    /* built tree and allocate memory for all data in file, and return pointer on root 
-    if data exist in file of course */
-    globRootP = readGlobStructFromFile(globRootP, globFP); 
-    if(argc == 2 && (mystrcmp(argv[1], "-g") == 0)) /* -g */
-    {
-        displayAllGlobData(globRootP);
-        (*mainflag)++;
-    }
-    // work with errors
-    else if(argc > 2)
-    {
-        if(argc == 3)
-        {
-            for(int i = 0; i < GLOB_FLAGSARRAY_LEN; i++)
-            {
-                if(mystrcmp(argv[1], flagsArrayGlob[i].flag) == 0)
-                {
-                    if(*(*(argv + 1) + 1) == 'g')
-                    {
-                        globRootP = flagsArrayGlob[i].flagFunc(globRootP, argv[2]);
-                        (*mainflag)++;
-                        break;
-                    }
-                    else;/* work with error!, not importatnt for now, maybe it will be a function */
-                }
-                else; /* work with error */
-            }
-        }
-        else if(argc == 4) // change
-        {
-            for(int i = 0; i < GLOB_FLAGSARRAY_LEN; i++)
-            {
-                if(mystrcmp(argv[1], "-g") == 0) /* -g */
-                {
-                    if(mystrcmp(argv[2], flagsArrayGlob[i].flag) == 0) {globRootP = flagsArrayGlob[i].flagFunc(globRootP, argv[3]);}
-                    else; // work with errors
-                }
-                else; // work with errors
-            }
-        }
-        else; // work with errors
-    }
-    else
-    {
-        /* there may be something more complicated */
-        printf(C_RED "%s\t%s\n", *(argv + 1), "error: incorrect comand line argument!" RESET_TO_DEF);
-    }
-    return globRootP;
-}
-
-struct tasksOnDay *daymainArgParser(struct tasksOnDay *daytasksP, FILE *dayFP, int argc, const char *argv[], int *mainflag)
-{
-    readDayStructFromFile(dayFP); /* reading data from file and allocate array of structs to store that date, realloc if not enough space */ 
-    /* read function will be sort data with qsort algorithm so in future we can easily use binary search */
-    if(argc == 2 && (mystrcmp(argv[1], "-l") == 0)) /* -l */
-    {
-        displayAllGlobData(daytasksP);
-        *mainflag++;
-    }
-    //work with errors
-    else if(argc > 2)
-    {
-        if(argc == 3)
-        {
-            for(int i = 0; i < DAY_FLAGSARRAY_LEN; i++)
-            {
-                if((mystrcmp(argv[1], flagsArrayGlob[i].flag) == 0) || (mystrcmp(argv[1], flagsArrayDay[i].flag) == 0))
-                {
-                    if(*(*(argv + 1) + 1) == 'l') 
-                    {
-                        daytasksP = flagsArrayDay[i].flagFunc(daytasksP, argv[2]);
-                        ++mainflag;
-                        break;
-                    }
-                    else;/* work with error!, not importatnt for now, maybe it will be a function */
-                }
-                else; /* work with error */
-            }
-        }
-        else if(argc == 4) // change
-        {
-            for(int i = 0; i < DAY_FLAGSARRAY_LEN; i++)
-            {
-                if(mystrcmp(argv[1], "-l") == 0) /* -l */
-                {
-                    if(mystrcmp(argv[2], flagsArrayDay[i].flag) == 0) {daytasksP = flagsArrayDay[i].flagFunc(daytasksP, argv[3]);}
-                    else; // work with errors
-                }
-                else; // work with errors
-            }
-        }
-        else; //work with errors
-    }
-    else
-    {
-        /* there may be something more complicated */
-        printf(C_RED "%s\t%s\n", *(argv + 1), "error: incorrect comand line argument!" RESET_TO_DEF);
-    }
-    return daytasksP;
-}
-
-
-struct globalDataNode *makeTreeBalanced(struct globalDataNode *globP) // to make tree balanced 
-{
-    ;
 }
 
 void showAllDocumentation(void)
@@ -1070,16 +972,74 @@ void showAllDocumentation(void)
 }
 
 /* we must debug this func because now it's not very clean */
-void delete_whole_tree(struct globalDataNode *rootP)
+void free_whole_tree(struct globalDataNode *rootP)
 {
-    if(NULL ==rootP) return;
-    delete_whole_tree(rootP->leftnode);
-    delete_whole_tree(rootP->rightnode);
-    free(rootP->headerOfNode);
-    free(rootP->amountDays);
-    free(rootP->statusOfTask);
-    free(rootP->description);
-    free(rootP->beginDate);
-    free(rootP->finishDate);
-    free(rootP);
+    if(NULL != rootP)
+    { 
+        free_whole_tree(rootP->leftnode);
+        free(rootP->headerOfNode);
+        free(rootP->statusOfTask);
+        free(rootP->description);
+        free(rootP->beginDate);
+        free(rootP->finishDate);
+        free(rootP);
+        free_whole_tree(rootP->rightnode);
+    }
+}
+
+struct globalDataNode *globmainArgParser(struct globalDataNode *globRootP, int argc, const char *argv[], int *mainflag)
+{
+    /* Build tree and allocate memory for all data in file, and return pointer on root if data exist in file of course */
+    if(!read_flag)
+    {
+        globF = fopen(GLOBAL_DATA_PATH, "r+"); // 'r+' - open for modification (read + write) 
+        globRootP = readGlobStructFromFile(globRootP, globF);
+        fseek(globF, 0, SEEK_SET); 
+        read_flag = 1;
+    }
+    if(argc == 2 && (mystrcmp(argv[1], "-g") == 0)) /* -g */
+    {
+        displayAllGlobData(globRootP);
+        (*mainflag)++;
+    }
+    // work with errors
+    else if(argc > 2)
+    {
+        if(argc == 3)
+        {
+            for(int i = 0; i < GLOB_FLAGSARRAY_LEN; i++)
+            {
+                if(strcmp(argv[1], flagsArrayGlob[i].flag) == 0)
+                {
+                    if(*(*(argv + 1) + 1) == 'g')
+                    {
+                        globRootP = flagsArrayGlob[i].flagFunc(globRootP, (char *)argv[2]);
+                        (*mainflag)++;
+                        break;
+                    }
+                    else;/* work with error!, not importatnt for now, maybe it will be a function */
+                }
+                else; /* work with error */
+            }
+        }
+        else if(argc == 4) // change
+        {
+            for(int i = 0; i < GLOB_FLAGSARRAY_LEN; i++)
+            {
+                if(strcmp(argv[1], "-g") == 0) /* -g */
+                {
+                    if(strcmp(argv[2], flagsArrayGlob[i].flag) == 0) {globRootP = flagsArrayGlob[i].flagFunc(globRootP, (char *)argv[3]);}
+                    else; // work with errors
+                }
+                else; // work with errors
+            }
+        }
+        else; // work with errors
+    }
+    else
+    {
+        /* there may be something more complicated */
+        printf(C_RED "%s\t%s\n", *(argv + 1), "error: incorrect comand line argument!" RESET_TO_DEF);
+    }
+    return globRootP;
 }
