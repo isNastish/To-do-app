@@ -114,7 +114,7 @@ static char daysInmonth[][13] = {
 
 int dayOfyear(int, int, int); // compute day of year(how many days was passed after it had begun)
 int comapareTime(int []);
-void dateParser(struct universalDate *, char [], int); // розделяет строку в которой содержиться дата на беззнаковые целые числа
+void dateParser(struct universalDate *dateP, char date[], int date_len); // розделяет строку в которой содержиться дата на беззнаковые целые числа
 unsigned short myatoi(char []);
 
 /* Functions and structures for parcing command line arguments */

@@ -347,9 +347,8 @@ void writeGlobStructToFile(struct globalDataNode *globP, FILE * fileP) /* receiv
 }
 
 static unsigned long long task_number;
-void globTreeprint(struct globalDataNode *globrootP) // not our tree is not balanced at all
+void globTreeprint(struct globalDataNode *globrootP)
 {
-    //static unsigned long long task_number  = 1;
     if(globrootP != NULL) // own address, not address of the left or right nodes
     {
         globTreeprint(globrootP->leftnode); // null
@@ -438,14 +437,14 @@ struct globalDataNode *addGlobData(struct globalDataNode *globPtr, char *header)
 }
 
 /* string date convert to a real int date maybe strdate[] we can changge on char * strdate */
-void dateParser(struct universalDate *dateP, char strdate[], int dateLen) 
+void dateParser(struct universalDate *dateP, char str_date[], int date_len) 
 {
     int countDots = 0, index = 0;
     char tempDate[5];
 
-    for(int i = 0; i < dateLen; i++) 
+    for(int i = 0; i < date_len; i++) 
     {
-        if(strdate[i] != '.') {tempDate[index] = strdate[i]; ++index;}
+        if(*(str_date + i) != '.') {tempDate[index] = *(str_date + i); ++index;}
         else
         {
             ++countDots;
@@ -454,7 +453,7 @@ void dateParser(struct universalDate *dateP, char strdate[], int dateLen)
             {
                 tempDate[index] = '\0';
                 dateP->month = myatoi(tempDate), index = 0;
-                for(i += 1; i < dateLen; i++) {tempDate[index] = strdate[i]; ++index;}
+                for(i += 1; i < date_len; i++) {tempDate[index] = *(str_date + i); ++index;}
                 tempDate[index] = '\0';
                 dateP->year = myatoi(tempDate);
                 return;
@@ -476,17 +475,23 @@ unsigned short myatoi(char date[])
     return n;
 }
 
-struct globalDataNode *changeGlobStatus(struct globalDataNode *globPtr, char *dateToChange) // receive begin date
+struct globalDataNode *changeGlobStatus(struct globalDataNode *globPtr, char *date_to_change) // receive begin date
 {
     struct universalDate convertDate;
     struct globalDataNode *reftoNode;
-    dateParser(&convertDate, dateToChange, 11);
+    char *dateP = date_to_change;
+    int date_len = strlen(dateP);
+    //printf("(%c)", *(date_to_change + date_len - 1));
+    //printf("(%c)", *(date_to_change + date_len));
+    
+    *(date_to_change + date_len) = '\0';
+    dateParser(&convertDate, date_to_change, date_len);
     reftoNode = findstatusinTree(globPtr, &convertDate);
     if(NULL == reftoNode)
     {
         printf(C_RED "date (%d %d %d) wasn't found.\n" RESET_TO_DEF, convertDate.day, convertDate.month, convertDate.year);
     }
-    showGlobDataBy(globPtr, dateToChange);
+    showGlobDataBy(globPtr, date_to_change);
     return globPtr;
 }
 
@@ -513,11 +518,14 @@ struct globalDataNode *findstatusinTree(struct globalDataNode *globrootP, struct
     }
 }
 
-struct globalDataNode *showGlobDataBy(struct globalDataNode *globPtr, char *dateToShow)
+struct globalDataNode *showGlobDataBy(struct globalDataNode *globPtr, char *date_to_show)
 {
     struct universalDate tempdate;
     struct globalDataNode *tempP;
-    dateParser(&tempdate, dateToShow, DATE_LEN);
+    char *dateP = date_to_show;
+    int date_len = strlen(dateP);
+    *(date_to_show + date_len) = '\0';
+    dateParser(&tempdate, date_to_show, date_len);
     tempP = finddateinTree(globPtr, &tempdate);
     if(NULL == tempP)
     {
@@ -532,7 +540,7 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
     if(NULL == globrootP) {return NULL;}
     else if((resultdate = compareDates(globrootP->beginDate, dateP)) > 0) {finddateinTree(globrootP->leftnode, dateP);}
     else if(resultdate < 0) {finddateinTree(globrootP->rightnode, dateP);}
-    else // if found - print info
+    else // such date was found 
     {
         int flag = 0;
         system("clear");
@@ -543,7 +551,7 @@ struct globalDataNode *finddateinTree(struct globalDataNode *globrootP, struct u
             if( i < 2) {printtopOfTable(flag, i);}
             else if(i == 2)
             {
-                printfirstFivecolumn(globrootP, 1); /* filling  columns */
+                printfirstFivecolumn(globrootP, 1); 
                 unsigned int headerLen = strlen(globrootP->headerOfNode), descrpLen = strlen(globrootP->description);
                 if(headerLen > 35 && descrpLen < 78)
                 {
@@ -584,7 +592,6 @@ void printWholeHeader(struct globalDataNode *globP, unsigned int h_len, unsigned
            for(int g = 0; g < 77; g++) {printf(" ");}; printf("|\n" RESET_TO_DEF); // 77 inclusively
            break;
         }
-        // decrease 20 on 15 in future
         else if(nSymbolsinLine > 10 && (globP->headerOfNode[i] == ' ' || globP->headerOfNode[i] == ',' || globP->headerOfNode[i] == '.' || 
             globP->headerOfNode[i] == '!' || globP->headerOfNode[i] == '?' || globP->headerOfNode[i] == '-'))
         {
@@ -881,13 +888,12 @@ void display_header_descrp(struct globalDataNode *globP, unsigned int headerLen,
     for(; j < 77; j++) {printf(" ");}; printf(C_MAGENTA "|\n" RESET_TO_DEF); 
 }
 
-/* i don't know now how to do it */
+/* function that delete one node from tree, it's complicated func because we need rebuild 
+all tree to save tree properties */
 struct globalDataNode *deleteGlobDataBy(struct globalDataNode *globPtr, char *str_date)
 {
     struct universalDate date_to_del;
-    dateParser(&date_to_del, str_date, DATE_LEN);
-
-    
+    //dateParser(&date_to_del, str_date, date_len);
 }
 
 // which date == 0 (begin date), 1(finish date)
@@ -946,7 +952,9 @@ struct tasksOnDay *deleteDayDataBy(struct tasksOnDay *daydataPtr, char *dateTodD
 
 struct globalDataNode *globmainArgParser(struct globalDataNode *globRootP, FILE *globFP, int argc, const char *argv[], int *mainflag)
 {
-    globRootP = readGlobStructFromFile(globRootP, globFP);/* built tree and allocate memory for all data in file, and return pointer on root */
+    /* built tree and allocate memory for all data in file, and return pointer on root 
+    if data exist in file of course */
+    globRootP = readGlobStructFromFile(globRootP, globFP); 
     if(argc == 2 && (mystrcmp(argv[1], "-g") == 0)) /* -g */
     {
         displayAllGlobData(globRootP);
