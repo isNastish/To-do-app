@@ -34,13 +34,10 @@ For detail info see here. https://en.wikipedia.org/wiki/ANSI_escape_code
 #include <string.h>
 #include <ctype.h> // не стоит включать этот заголовочнай файл из-за одной функции, нужно просто написать ее
 
-#define APP__VERSION "1.0.1"
-#define PATH_SIZE 60 // size of array that contains path
-#define GLOB_FLAGSARRAY_LEN (sizeof flagsArrayGlob / sizeof(struct globalcmdFuncsWithTwoArgs))
+#define GLOB_FLAGSARRAY_LEN (sizeof flags_array_glob / sizeof(struct global_cmd_funcs_with_two_args))
 #define DEF_STATUS "in progress"
 #define MAXLINES 4 // executable file name, flag, another flag, date or header.
 #define BUFSIZE 100
-#define ALLOCSIZE 1000
 #define HEADER_DESCRP_LEN 50000
 #define DATE_LEN 11
 #define DOC_FILE_PATH "/home/nastish/MyProjects/To-do-app/database/appDoc.txt"
@@ -51,7 +48,7 @@ FILE *globF;
 FILE *dayF;
 unsigned char read_flag = 0;
 
-struct universalDate
+struct universal_date
 {
     unsigned short year;
     unsigned short month;
@@ -60,76 +57,75 @@ struct universalDate
 
 /* main structure for working with global date (все данный во этой структуре мы будем ложить в бинарное дерево 
 и сортировать по дате и выводить на экран от самой свежей к самой моздней )*/
-struct globalDataNode
+struct global_data_node
 {
     char *headerOfNode;
     int amountDays; // amount of days finishDate - beginDate;
-    struct universalDate *beginDate;
-    struct universalDate *finishDate;
+    struct universal_date *beginDate;
+    struct universal_date *finishDate;
     char *statusOfTask; // (done, in progress, rejected)
     char *description; // task description 
 
-    struct globalDataNode *leftnode;
-    struct globalDataNode *rightnode;
+    struct global_data_node *leftnode;
+    struct global_data_node *rightnode;
 };
 
 /* functions to work with structures */
-struct globalDataNode *tallocGlobaltask(void); // allocate memory for globalDataNode struct
+struct global_data_node *talloc_global_task(void); // allocate memory for global_data_node struct
 //struct dayTasksNode *tallocDayTask(void); // allocate memory for dayTasksNode struct
-struct universalDate *tallocDate(struct universalDate *); // allocate date in memory
-struct globalDataNode *createGlobalTree(struct globalDataNode *, struct universalDate *, struct universalDate *, char *, char *, char *); // building a tree of struct globalDataNode
+struct universal_date *talloc_date(struct universal_date *); // allocate date in memory
+struct global_data_node *create_global_tree(struct global_data_node *, struct universal_date *, struct universal_date *, char *, char *, char *); // building a tree of struct global_data_node
 //struct datTasksNode *createDayTree(struct dayTasksNode *, int, int); // building a tree of struct dayTasksNode? time in hours, in minutes
 /* functions to allocate all description of structs*/
-char *allocateDescription(char *); 
-void globTreeprint(struct globalDataNode *);
+char *allocate_description(char *); 
+struct global_data_node *glob_tree_print(struct global_data_node *, unsigned short);
 
 
 /* simple functions for working with strings or numbers or something else */
 int mystrlen(char *word){int n; for(n = 0; *word != '\0'; word++) {n++;} return n;} // length of string
 int mystrcmp(const char *argv, char *flag){for(; *argv == *flag; argv++, flag++){if(*argv == '\0'){return 0;}} return *argv - *flag;} // compare strings
-int compareDates(struct universalDate *, struct universalDate *); // compare to dates
-int amountOfDaysPerTask(struct universalDate *, struct universalDate *); // differents beetwen start and finish in day
+int compare_dates(struct universal_date *, struct universal_date *); // compare to dates
+int amount_of_days_per_task(struct universal_date *, struct universal_date *); // differents beetwen start and finish in day
 
 
 /* instruments for function (amountOfDaysPerTask()) */
-static char daysInmonth[][13] = {
+static char days_in_month[][13] = {
     {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
     {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31} /* leap year */
 };
 
-int dayOfyear(int, int, int); // compute day of year(how many days was passed after it had begun)
-int comapareTime(int []);
-void dateParser(struct universalDate *dateP, char *date, int date_len); // розделяет строку в которой содержиться дата на беззнаковые целые числа
+int day_of_year(int, int, int); // compute day of year(how many days was passed after it had begun)
+void date_parser(struct universal_date *dateP, char *date, int date_len); // розделяет строку в которой содержиться дата на беззнаковые целые числа
 unsigned short myatoi(char []);
 
 /* Functions and structures for parcing command line arguments */
 // realization of all this functions will be in file main.c
-void showAllDocumentation(void); // читает файл с заданными командами и выводит возможные команды на экран
+void show_all_documentation(void); // читает файл с заданными командами и выводит возможные команды на экран
 
-void displayAllGlobData(struct globalDataNode *);
-void error_date_print(struct universalDate);
+void display_all_globdata(struct global_data_node *, unsigned short identifier);
+void error_date_print(struct universal_date);
 
-struct globalDataNode *add_glob_data(struct globalDataNode *, char *); // header will receive from cm line
-struct globalDataNode *change_glob_status(struct globalDataNode *, char *); // в командную строку поступает дата 
-struct globalDataNode *change_glob_header(struct globalDataNode *, char *);
-struct globalDataNode *change_glob_description(struct globalDataNode *, char *);
-struct globalDataNode *change_begin_date(struct globalDataNode *, char *);
-struct globalDataNode *change_finish_date(struct globalDataNode *, char *);
-struct globalDataNode *delete_glob_data_by(struct globalDataNode *, char *); // нужно сделать одну функцию для обеих структур
-struct globalDataNode *show_glob_data_by(struct globalDataNode *, char *);
+struct global_data_node *add_glob_data(struct global_data_node *, char *); // header will receive from cm line
+struct global_data_node *change_glob_status(struct global_data_node *, char *); // в командную строку поступает дата 
+struct global_data_node *change_glob_header(struct global_data_node *, char *);
+struct global_data_node *change_glob_description(struct global_data_node *, char *);
+struct global_data_node *change_begin_date(struct global_data_node *, char *);
+struct global_data_node *change_finish_date(struct global_data_node *, char *);
+struct global_data_node *delete_glob_data_by(struct global_data_node *, char *); // нужно сделать одну функцию для обеих структур
+struct global_data_node *show_glob_data_by(struct global_data_node *, char *);
 
 /* aditional functions for functions above */
-struct globalDataNode *find_date(struct globalDataNode *, struct universalDate *, unsigned short sign); // return 1 if date was found and changed, else 0
-struct globalDataNode *finddateinTree(struct globalDataNode *, struct universalDate *);
+struct global_data_node *find_date(struct global_data_node *, struct universal_date *, unsigned short sign); // return 1 if date was found and changed, else 0
+struct global_data_node *find_date_and_print_content(struct global_data_node *, struct universal_date *);
 // возможно набор всех флагов и их документация будут хранится тоже в отдельном файле .txt 
 
-struct globalcmdFuncsWithTwoArgs
+struct global_cmd_funcs_with_two_args
 {
     const char *flag;
-    struct globalDataNode *(*flagFunc)(struct globalDataNode *, char *);// pointer on fucntion with two arguments, pointer on struct and, date or time
-} flagsArrayGlob[] = {
+    struct global_data_node *(*flagFunc)(struct global_data_node *, char *);// pointer on fucntion with two arguments, pointer on struct and, date or time
+} flags_array_glob[] = {
     /*-g*/"-sh", show_glob_data_by, 
-    /*-g*/"-d", delete_glob_data_by,
+    /*-g*/"-del", delete_glob_data_by,
     /*-g*/"-a", add_glob_data,
     /*-g*/"-c", change_glob_status,
     /*-g*/"-h", change_glob_header,
@@ -137,7 +133,7 @@ struct globalcmdFuncsWithTwoArgs
     /*-g*/"-bd", change_begin_date,
     /*-g*/"-fd", change_finish_date,
     "-ga", add_glob_data,
-    "-gd", delete_glob_data_by,
+    "-gdel", delete_glob_data_by,
     "-gc", change_glob_status,
     "-gh", change_glob_header,
     "-gd", change_glob_description,
@@ -150,130 +146,93 @@ struct globalcmdFuncsWithTwoArgs
 const char *inArgsPtr[MAXLINES];
 
 //FILE* parserCmlineArgc(int, const char *[]);
-int insideProgArgParser(const char *[]); // returns how many args was written
-void descriptionOfTaskParser(char *); // description parcer
+int inside_prog_arg_parser(const char *[]); // returns how many args was written
+void description_of_task_parser(char *); // description parcer
 int mygetLine(char [], int);
 
 /* writing and reading struct from file */
-void writeGlobStructToFile(struct globalDataNode *, FILE *);
-struct globalDataNode *readGlobStructFromFile(struct globalDataNode *, FILE *);
+void write_glob_struct_to_file(struct global_data_node *, FILE *);
+struct global_data_node *read_glob_struct_from_file(struct global_data_node *, FILE *);
 
-struct globalDataNode *globmainArgParser(struct globalDataNode *, int, const char *[], int *);
+struct global_data_node *glob_main_arg_parser(struct global_data_node *, int, const char *[], int *);
 
-void showDocumentation(void); /* read file where all our documentation stored and display it on the screen */
-void printingHeadandDescrp();
+void show_documentation(void); /* read file where all our documentation stored and display it on the screen */
+void printing_header_and_Descrp();
 
 /* printing functiouns */
-void printfirstFivecolumn(struct globalDataNode *, unsigned int);
-void printtopOfTable(int, int); /* print top piece of table */
-void printbottomOfTable(void); /* print bottom part of table */
+void print_first_five_columns(struct global_data_node *, unsigned int);
+void print_top_of_table(int, int); /* print top piece of table */
+void print_bottom_of_table(void); /* print bottom part of table */
 
 /* print headerOfNode and description if in columns enough space */
-void display_header_descrp(struct globalDataNode *globP, unsigned int h_len, unsigned int d_len); 
+void display_header_descrp(struct global_data_node *globP, unsigned int h_len, unsigned int d_len); 
 
 /* print headerOfNode and description if in both columns not enough space to store data in one line */
-void display_owersize_header_descrp(struct globalDataNode *globP, unsigned int h_len, unsigned int d_len);
-int display_owersize_header(struct globalDataNode *globP, unsigned int h_len, int *h_i);
-int display_owersize_descrp(struct globalDataNode *globP, unsigned int d_len, int *d_i);
+void display_owersize_header_descrp(struct global_data_node *globP, unsigned int h_len, unsigned int d_len);
+int display_owersize_header(struct global_data_node *globP, unsigned int h_len, int *h_i);
+int display_owersize_descrp(struct global_data_node *globP, unsigned int d_len, int *d_i);
 
 /* 
 recursive func that print max amount of words which can be stored in one single line in column 
 */
-void printHeader(struct globalDataNode *globP, unsigned int header_len, 
+void print_header(struct global_data_node *globP, unsigned int header_len, 
     unsigned int *nSymbols, int *i, int *k); 
-void printDescription(struct globalDataNode *globP, unsigned int description_len,
+void print_description(struct global_data_node *globP, unsigned int description_len,
     unsigned int *nSymbols, int *i, int *k); // ptiny description recursively
 
 
-void printWholeHeader(struct globalDataNode *globP, unsigned int headerLen, 
+void print_whole_header(struct global_data_node *globP, unsigned int headerLen, 
     unsigned int descrpLen); /* function that print whole header from start to finish */
-void printWholeDescription(struct globalDataNode *globP, 
+void print_whole_description(struct global_data_node *globP, 
     unsigned int descriptionLen); // function that prints whole description if size more then size of column 
 
 
-struct globalDataNode *makeTreeBalanced(struct globalDataNode *globP); /* function that make tree balanced always, 
+struct global_data_node *make_tree_balanced(struct global_data_node *globP); /* function that make tree balanced always, 
         rebuild tree choicing average element by date as a root */
-void free_whole_tree(struct globalDataNode *rootP); // distruct whole tree
+void free_whole_tree(struct global_data_node *rootP); // distruct whole tree
 
-void input_date_begin(struct globalDataNode *globP);
-void input_date_finish(struct globalDataNode *globP);
-void input_status(struct globalDataNode *globP);
-void input_header(struct globalDataNode *globP);
-void input_description(struct globalDataNode *glonP);
-
+void input_date_begin(struct global_data_node *globP);
+void input_date_finish(struct global_data_node *globP);
+void input_status(struct global_data_node *globP);
+void input_header(struct global_data_node *globP);
+void input_description(struct global_data_node *glonP);
 int date_manipulation(char *searching_date);
+
+void printing_main_func(struct global_data_node *globP);
+
+/*
+we can add functions that change date only after the function that makes tree
+balanced will be written!
+
+and we still need function that deletes nodes
+*/
+
 #endif
 
-                                            /* _______________________ЗАДАЧИ______________________________________*/
-
-
-/*  - нужна функция которая бы сравнивала одну дату с другой и выясняла какая дата старше а какая младше,
-        наверное путем возвращения разници в днях между ними.
-
-    - создать функцию которая бы считала разницу в днях между датой постановки задачи и ориентировочной датой окончания задачи.
+/*
     
-    - проблема, как искать по чем-то другом кроме даты, и как удалять допустим по названию ???
+1    - проблема, как искать по чем-то другом кроме даты, и как удалять допустим по названию ???
         (можно создать копию структуры, в которую в начале выполнения программы запишуться все данные, но отсортируются не по дате, а по названию, и тогда
         ........ оставим пока эту проблему и будем сортировать все по дате!)
 
-    - касательно аллокации памяти для структур, нам нужно аллоцировать полностью все, потом это все переписать в файл и только тогда почистить память!
-
-    - не забыть почистить потом память !
-
-    - написал функциию которая считает количество дней между двумя датами, ну жно ее потом проверить, не факт что она корректно работает!
-
-    - самую первую глобальню задачу нужно добавлять среднюю по срокам, например на пол года, тогда дерево будет сбалансированным,
-        а если мы сначала добавим задачу продолжительность 2 дня, а потом будем все добавлять сроком больше чем два дня, то получится не сбалансированное дерево, 
-        так-же если добавить задачу напимер на пять лет, а потом добавлять мелкие задачи!
-
-1    - нужна функция которая записует все узлы дерева в файл таким образом как они находятся в дереве!
+2    - не забыть почистить потом память !
 
 
-2    - реализовать все тоже управление которое есть через командную строку, только внутри программы,
-        нужен цикл который будет все время держать программу 
-
-3!    - решить проблему если дерево не сбалансированное, 
+3    - решить проблему если дерево не сбалансированное, 
         как-то перезаписывать дерево выбирая среднюю дату между самой старой и самой новой!
         может перед тем как строить древо, заносить элементы в массив в порядке возрастания дат,
         выбирать средний элемент  как root и от него уже строить дерево.
 
-4    - реализовать логику для записи данных(планов на день), так как эта часть вообще не готова!
 
-5    - проблему в том что нужно колонку в таблице там где описание заполнить таким образом что-бы
-        все описание поместилось и не здвинулись грани таблици, тое-сть нужно ее в каких-то местах 
-        переводить на новыю строку, и по концу формировать горизонтальную черту таблици 
+4   - rewrite all function names, etc using underscore
 
 
-
-6    - пока самая важная задача это как отображать данные так что-бы они поместились в таблицу
-
-
-7    - разделить парсинг аргуметов командной строки на две главных функции, одна для структуры 
-        globalDataNode а вторая для dayTasksNode
-
-
-8    - вынести в отделбную функцию отрисовку данных header and description, потому как они практическик 
-        идентичны в двух местах, нужно слепить с них одну 
-
-9    - решение проблемы с отображением, когда мы встречаем первый пробел или запятую или точку.. после 20 написанных символов
-        мы делаем еще один цикл что-бы проверить будет ли еще хоть один пробел или запята я или точка.. до конца размера колонки
-        если будет, то мы вписываем это слово до пробела, а все остальные переносим на новую строку
-        если нет, переносим все начиная от первого пробела после 20 символов.
-
-10   - добавить возможность модифицировать полностью все данны в таблице, сначала модифицировать 
-        оглавление и описание задачи, а потом к датам, так-как с сроками сложнее, 
-        нужно поменять дату и перестроить бинарное дерево 
-
-11   - исправить ошибку с вводом, так-как сейчас в заголовок можно вводить не больше
-        100 символов по моему, нужно зделать так что-бы можно было вводить сколько угодно!
-
-12   - rewrite all function names, etc using underscore
-
-
-13   - fix в функции которая выводит на экран заголовок и описание иногда бывает
+5   - fix в функции которая выводит на экран заголовок и описание иногда бывает
         что в конце строки не выводиться точка, запятая или дефиз!
 
-14   - make function that only print all "in progress" data or only "done" data and "denied" data.
+5   - make function that only print all "in progress" data or only "done" data and "denied" data.
 
-15   - разбить содержимое файла на функции!
+6   - разбить содержимое main на функции!
+
+7   - left two functions to do, dalete func, and make tree balanced func
 */
