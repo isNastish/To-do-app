@@ -5,7 +5,7 @@
 application: application.o
 	gcc application.o -o application
 
-application.o: application.s
+application.o: application.s application.h
 	gcc -c application.s
 
 application.s: application.c

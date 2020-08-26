@@ -6,15 +6,15 @@ int main(int argc, const char *argv[])
     int firstArgLen, main_flag = 0; char *p;
 
     // first element is always name of executable file
-    if((p = (char *)malloc(firstArgLen = strlen(*argv) + 1)) != NULL) {strcpy(p, *argv); *(p + firstArgLen) = '\0'; inArgsPtr[0] = p;} 
+    if ((p = (char *)malloc(firstArgLen = strlen(*argv) + 1)) != NULL) {strcpy(p, *argv); *(p + firstArgLen) = '\0'; inArgsPtr[0] = p;} 
     assert(p != NULL);
 
     struct global_data_node *globRootP = NULL; // poiner to array of such structs
 
     // check argumnets from command line, and call proper func
-    if(argc > 1)
+    if (argc > 1)
     {
-        if(*(*(argv + 1) + 1) == 'g') {globRootP = glob_main_arg_parser(globRootP, argc, argv, &main_flag);} // global data
+        if (*(*(argv + 1) + 1) == 'g') {globRootP = glob_main_arg_parser(globRootP, argc, argv, &main_flag);} // global data
         else if(mystrcmp(*(argv + 1), "--help") == 0) {show_all_documentation();}
         else 
         {
@@ -210,13 +210,13 @@ struct global_data_node *create_global_tree(struct global_data_node *ptrG, struc
         нее нужно переприсвоить новоприбывшему узлу, и соответсвенно указатель на всю левую часть на которую указывал старый такой-же узел нужно присвоить в новый узел.
         */
 
-       // left node must be smaller and right node must be equal or hugher, i gave a bug here
+       // left node must be smaller and right node must be equal or bigger, i have a bug here
         if(NULL != ptrG->leftnode)
         {
            struct global_data_node *tempRight = (NULL != ptrG->rightnode) ? (ptrG->rightnode) : NULL;
-           struct global_data_node *tempLeft = ptrG->leftnode; // присваиваем времменно ссылку на узел левый узел который мы хотим подвинуть 
+           struct global_data_node *tempLeft = ptrG->leftnode; // присваиваем времменно ссылку на левый узел который мы хотим подвинуть 
            ptrG->leftnode = create_global_tree(NULL, beginDateptr, finishDateptr, descrp, header, status);
-           ptrG->leftnode->leftnode = tempLeft; // возможно привыходе адресс может потерятся, по этому нужно проверить эту функцию в будещем!
+           ptrG->leftnode->leftnode = tempLeft; 
            ptrG->leftnode->rightnode = tempRight;
 
         }
@@ -982,10 +982,20 @@ void display_header_descrp(struct global_data_node *globP, unsigned int headerLe
 
 /* function that delete one node from tree, it's complicated func because we need rebuild 
 all tree to save tree properties */
-struct global_data_node *delete_glob_data_by(struct global_data_node *globPtr, char *str_date)
+struct global_data_node *pre_deleting_node_func(struct global_data_node *globPtr, char *str_date)
 {
     struct universal_date date_to_del;
-    //dateParser(&date_to_del, str_date, date_len);
+    date_parser(&date_to_del, str_date, date_manipulation(str_date));
+    globPtr = delete_node_by_date(globPtr, &date_to_del);
+}
+
+struct global_data_node *delete_node_by_date(struct global_data_node *rootP, struct universal_date *dateP)
+{
+    if(NULL == rootP) return rootP;
+    else
+    {
+        ;
+    }
 }
 
 void show_all_documentation(void)

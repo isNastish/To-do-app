@@ -111,7 +111,7 @@ struct global_data_node *change_glob_header(struct global_data_node *, char *);
 struct global_data_node *change_glob_description(struct global_data_node *, char *);
 struct global_data_node *change_begin_date(struct global_data_node *, char *);
 struct global_data_node *change_finish_date(struct global_data_node *, char *);
-struct global_data_node *delete_glob_data_by(struct global_data_node *, char *); // нужно сделать одну функцию для обеих структур
+struct global_data_node *pre_deleting_node_func(struct global_data_node *, char *); // нужно сделать одну функцию для обеих структур
 struct global_data_node *show_glob_data_by(struct global_data_node *, char *);
 
 /* aditional functions for functions above */
@@ -125,7 +125,7 @@ struct global_cmd_funcs_with_two_args
     struct global_data_node *(*flagFunc)(struct global_data_node *, char *);// pointer on fucntion with two arguments, pointer on struct and, date or time
 } flags_array_glob[] = {
     /*-g*/"-sh", show_glob_data_by, 
-    /*-g*/"-del", delete_glob_data_by,
+    /*-g*/"-del", pre_deleting_node_func,
     /*-g*/"-a", add_glob_data,
     /*-g*/"-c", change_glob_status,
     /*-g*/"-h", change_glob_header,
@@ -133,7 +133,7 @@ struct global_cmd_funcs_with_two_args
     /*-g*/"-bd", change_begin_date,
     /*-g*/"-fd", change_finish_date,
     "-ga", add_glob_data,
-    "-gdel", delete_glob_data_by,
+    "-gdel", pre_deleting_node_func,
     "-gc", change_glob_status,
     "-gh", change_glob_header,
     "-gd", change_glob_description,
@@ -200,6 +200,8 @@ int date_manipulation(char *searching_date);
 
 void printing_main_func(struct global_data_node *globP);
 
+struct global_data_node *delete_node_by_date(struct global_data_node *rootP, struct universal_date *dateP);
+
 /*
 we can add functions that change date only after the function that makes tree
 balanced will be written!
@@ -211,17 +213,6 @@ and we still need function that deletes nodes
 
 /*
     
-1    - проблема, как искать по чем-то другом кроме даты, и как удалять допустим по названию ???
-        (можно создать копию структуры, в которую в начале выполнения программы запишуться все данные, но отсортируются не по дате, а по названию, и тогда
-        ........ оставим пока эту проблему и будем сортировать все по дате!)
-
-2    - не забыть почистить потом память !
-
-
-3    - решить проблему если дерево не сбалансированное, 
-        как-то перезаписывать дерево выбирая среднюю дату между самой старой и самой новой!
-        может перед тем как строить древо, заносить элементы в массив в порядке возрастания дат,
-        выбирать средний элемент  как root и от него уже строить дерево.
 
 
 4   - rewrite all function names, etc using underscore
