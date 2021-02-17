@@ -210,20 +210,3 @@ and we still need function that deletes nodes
 */
 
 #endif
-
-/*
-    
-
-
-4   - rewrite all function names, etc using underscore
-
-
-5   - fix в функции которая выводит на экран заголовок и описание иногда бывает
-        что в конце строки не выводиться точка, запятая или дефиз!
-
-5   - make function that only print all "in progress" data or only "done" data and "denied" data.
-
-6   - разбить содержимое main на функции!
-
-7   - left two functions to do, dalete func, and make tree balanced func
-*/
